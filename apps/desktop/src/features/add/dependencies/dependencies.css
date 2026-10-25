@@ -1,0 +1,484 @@
+/*
+ * Diálogo "Adicionar itens" (SPEC T09; esboço `design/bug-01/adicionar-itens.html`, opção 4 ·
+ * Árvore + detalhe; ADR-0068): árvore por mod à esquerda, o porquê do item clicado à direita e a
+ * conta no rodapé. Só tokens do design system.
+ */
+.dialog--xl .dialog__body {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.dialog--xl .dialog__body > * + * {
+  margin-top: 0;
+}
+.dialog--xl .dialog__head {
+  border-bottom: var(--border-thin) solid var(--color-border);
+  padding-bottom: var(--space-4);
+}
+.dialog--xl .dialog__foot .btn--primary {
+  min-width: 184px;
+}
+
+.deps4 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: min(640px, calc(100vh - 220px));
+}
+.deps4__tree {
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-6) var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.deps4__top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.deps4__side {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border-left: var(--border-thin) solid var(--color-border);
+}
+
+/* A conta do rodapé: "3 escolhidos + 2 obrigatórias + 2 opcionais = 7 itens". */
+.conta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin-right: auto;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+}
+.conta__op {
+  color: var(--color-text-3);
+}
+.conta__tot {
+  color: var(--color-primary-text);
+  font-weight: var(--font-weight-bold);
+}
+.conta--none {
+  color: var(--color-text-3);
+}
+
+/* Avisos (lado não informado, sem incompatibilidade) e problemas que pedem decisão. */
+.deps-note {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+}
+.deps-note > .icon {
+  margin-top: 2px;
+  color: var(--color-text-3);
+}
+.deps-note > .icon.t-ok {
+  color: var(--color-ok-text);
+}
+.deps-note b {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+.pbs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.pb {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--pb-bg);
+  box-shadow: inset 0 0 0 1px var(--pb-line);
+}
+.pb--danger {
+  --pb-bg: var(--color-danger-soft);
+  --pb-line: var(--color-danger);
+  --pb-fg: var(--color-danger-text);
+}
+.pb--warn {
+  --pb-bg: var(--color-warn-soft);
+  --pb-line: var(--color-warn);
+  --pb-fg: var(--color-warn-text);
+}
+.pb--done {
+  --pb-bg: transparent;
+  --pb-line: var(--color-border-strong);
+  --pb-fg: var(--color-text-3);
+}
+.pb > .icon {
+  margin-top: 2px;
+  color: var(--pb-fg);
+}
+.pb__t {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+.pb__d {
+  grid-column: 2;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+}
+.pb__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+.pb__list .btn--link {
+  font-size: inherit;
+}
+.pb__sep {
+  color: var(--color-text-3);
+}
+.pb__act {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: var(--space-2);
+}
+.pb__choice {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  border: 0;
+  font-size: var(--text-sm);
+}
+
+/* A árvore. */
+.dtree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.dtree__row {
+  --depth: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px 100px 128px;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-4) 0 calc(var(--space-3) + var(--depth) * 28px);
+}
+.dtree__row > * {
+  min-width: 0;
+}
+.dtree__head {
+  min-height: 0;
+  padding-left: var(--space-3);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.dtree__branch {
+  background: var(--color-bg);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  padding-bottom: var(--space-1);
+}
+.dtree__branch--common {
+  background: transparent;
+  box-shadow: none;
+}
+.dtree__branch--common .dtree__row--flat {
+  box-shadow: inset 0 -1px 0 var(--color-border);
+}
+.dtree__common {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-2);
+  border-bottom: var(--border-thin) solid var(--color-border-strong);
+  margin-bottom: var(--space-1);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-text-3);
+}
+.dtree__common h3 {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.dtree__row--head {
+  min-height: 44px;
+  background: var(--color-surface-2);
+  box-shadow: inset 0 -1px 0 var(--color-border);
+}
+.dtree__row--head .dtree__name {
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-extrabold);
+}
+.dtree__row--flat {
+  min-height: 52px;
+  grid-template-rows: auto auto;
+  row-gap: 0;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+.dtree__row--flat > .dtree__rel {
+  grid-column: 1;
+  grid-row: 2;
+  padding-left: calc(18px + 20px + var(--space-2) * 2);
+}
+/* O traço da árvore liga cada pendurada ao item de cima. */
+.dtree__row:not(.dtree__row--head):not(.dtree__row--flat):not(.dtree__head)::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--space-3) + var(--depth) * 28px - 19px);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border-strong);
+}
+.dtree__row[data-last]::before {
+  bottom: 50%;
+}
+.dtree__row:not(.dtree__row--head):not(.dtree__row--flat):not(.dtree__head)::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--space-3) + var(--depth) * 28px - 19px);
+  top: calc(50% - 1px);
+  width: 12px;
+  height: 2px;
+  background: var(--color-border-strong);
+}
+.dtree__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.dtree__check {
+  gap: 0;
+}
+.dtree__in {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  color: var(--color-ok-text);
+}
+.dtree__icon {
+  object-fit: cover;
+}
+.dtree__name {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.dtree__name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dtree__row.is-current {
+  background: var(--color-bg-sunken);
+  box-shadow:
+    var(--inset-shadow-slot),
+    inset 0 0 0 1px var(--color-primary-line);
+}
+.dtree__row:not(.is-current):not(.dtree__head):hover {
+  background: var(--color-surface-2);
+}
+.dtree__ver {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dtree__rel {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dtree__rel b {
+  color: var(--color-text-2);
+  font-weight: var(--font-weight-semibold);
+}
+.dtree__row .tag {
+  justify-self: start;
+  max-width: 100%;
+}
+.dtree__branch.is-off .dtree__row--head {
+  background: var(--color-surface-1);
+}
+.dtree__branch.is-off .dtree__name,
+.dtree__row.is-off .dtree__name,
+.dtree__row.is-off .dtree__ver {
+  color: var(--color-text-3);
+}
+.dtree__row.is-off .tile,
+.dtree__branch.is-off .tile {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+/* Coluna da direita: a conta em blocos e o porquê. */
+.cv {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: var(--border-thin) solid var(--color-border);
+  background: var(--color-surface-1);
+}
+.cv__t {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+}
+.cv__t b {
+  margin-right: var(--space-1);
+  font-weight: var(--font-weight-extrabold);
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  color: var(--color-text);
+}
+.cv__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.cv__grp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.cv__blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.cv__blocks button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: var(--block-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--block-line),
+    inset 0 -3px 0 var(--color-bevel-dark);
+  cursor: pointer;
+}
+.cv__blocks button:hover,
+.cv__blocks button[aria-current='true'] {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+.cv__grp--chosen {
+  --block-bg: var(--color-primary);
+  --block-line: var(--color-primary-press);
+}
+.cv__grp--required {
+  --block-bg: var(--color-primary-press);
+  --block-line: var(--color-primary-line);
+}
+.cv__grp--optional {
+  --block-bg: var(--color-surface-3);
+  --block-line: var(--color-primary-line);
+}
+.cv__lbl {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-text-3);
+  white-space: nowrap;
+}
+.cv__eq {
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-3);
+  font-weight: var(--font-weight-bold);
+}
+.d2 {
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.d2__head {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+}
+.d2__head > .tile {
+  grid-row: 1 / span 2;
+}
+.d2__head h3 {
+  font-size: var(--text-md);
+  line-height: var(--text-md--line-height);
+  font-weight: var(--font-weight-extrabold);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.d2__role {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+}
+.d2__role b {
+  color: var(--color-text);
+}
+.d2__what {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-text-2);
+}
+.d2__kv {
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+.d2__kv dd {
+  min-width: 0;
+}
+.d2__sub {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+}
+.d2__file {
+  overflow-wrap: anywhere;
+  color: var(--color-text-2);
+}
