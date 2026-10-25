@@ -20,7 +20,6 @@ function view(overrides: Partial<AiSettingsView> & { keys?: string[]; refused?: 
   const order = rest.order ?? ['anthropic', 'gemini', 'openai'];
   const providers = (['gemini', 'openai', 'anthropic'] as const).map((provider) => ({
     provider,
-    tier: 'economical' as const,
     keyConfigured: keys.includes(provider),
     keyRefused: refused.includes(provider),
     models: null,
@@ -28,7 +27,6 @@ function view(overrides: Partial<AiSettingsView> & { keys?: string[]; refused?: 
   const usable = order.find((p) => keys.includes(p) && !refused.includes(p)) ?? order[0];
   return {
     provider: usable ?? 'gemini',
-    tier: 'economical',
     keyConfigured: true,
     models: null,
     providers,

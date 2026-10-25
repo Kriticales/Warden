@@ -249,7 +249,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Logs do Warden | registros | logs do app |
 | Crash | travou / travamento; "crash report" para o arquivo | quebrou, falhou geral |
 | Seção com os achados do diagnóstico | Problemas | Diagnóstico (como nome de seção), Erros |
-| Diagnóstico feito pela IA | Diagnóstico com IA (com o ícone ✦) | assistente, IA mágica |
+| A seção de IA do pack (bug-01; ADR-0064) | **Sensor Sculk** (com o ícone ✦) | Diagnóstico com IA, assistente, chat, IA mágica |
+| A IA dentro do app | **Sculk** ("Perguntar ao Sculk", "Conversar com o Sculk", "O Sculk pode errar. Confira antes de mudar o pack."); "IA" só onde se fala do serviço ("provedores de IA") | a IA, o assistente, o bot, o modelo |
+| Como o Sculk procura numa pergunta, no Claude e na OpenAI (ADR-0064) | **Procurar rápido** / **Procurar a fundo** | modo econômico, análise cuidadosa, nível do modelo |
 | Etapa que leva o pack para a instância | Copiar o pack para o teste | sincronizar, sync |
 | Revisão das mudanças feitas no jogo | O que mudou durante o teste | diff, sincronização reversa |
 | Tela inicial do app | Meus packs | Início, Modpacks, Dashboard |
@@ -267,8 +269,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 | Raio-x de mixins (D4) | o que este mod altera no jogo; "alteram o mesmo ponto do jogo" | mixin (na interface, fora da coluna técnica), conflito de mixin, "são incompatíveis" |
 | Sessão de perguntas com a IA (D4) | conversa | chat, sessão de IA |
 | Empresa e API da IA escolhida em Configurações (ADR-0060) | provedor de IA (ou só "provedor" quando o contexto é a IA); nomes exibidos: **Gemini**, **OpenAI**, **Claude** (a empresa só no passo a passo da chave: Google, OpenAI, Anthropic) | fornecedor, LLM, backend, API de IA, "Anthropic" como nome do provedor |
-| O que a IA consultou, mostrado na conversa (D4) | Enviado à IA | log de ferramentas, function call |
-| Mudança sugerida pela IA (D4) | proposta; botão **Aplicar** | sugestão automática, ação da IA |
+| O que o Sculk consultou, mostrado na conversa (D4) | "O Sculk consultou N coisas"; cada uma "Enviado ao Sculk: …" | log de ferramentas, function call, Enviado à IA |
+| Mudança sugerida pelo Sculk (D4) | proposta; botão **Aplicar** | sugestão automática, ação da IA |
 | Conjunto de ajustes do teste com nome (D4) | perfil do teste | preset, configuração de teste |
 | Servidor dedicado na máquina do usuário (D4) | servidor local; "Testar como servidor" | servidor dedicado, host local |
 | Server pack (D4) | pacote para servidor | server pack, pacote de servidor |

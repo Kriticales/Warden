@@ -29,7 +29,7 @@ use warden_ai::conversation::{AnswerVia, Conversation};
 use warden_ai::engine::{Engine, Limits, LiveStatus, Observer};
 use warden_ai::evidence::ClaimStatus;
 use warden_ai::providers::anthropic::AnthropicClient;
-use warden_ai::providers::{AiProvider, Message, Provider};
+use warden_ai::providers::{AiProvider, Message, Provider, SearchMode};
 use warden_ai::schema::ROUND_LIMIT_MESSAGE;
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
@@ -468,7 +468,7 @@ async fn paralelas_malformada_e_resposta_pela_responder() {
         assert_eq!(request["system"], requests[0]["system"], "system fixo");
         assert!(request.get("output_config").is_none());
     }
-    assert_eq!(requests[0]["tools"].as_array().unwrap().len(), 16);
+    assert_eq!(requests[0]["tools"].as_array().unwrap().len(), 18);
     // A malformada foi repetida sem mexer no histórico.
     assert_eq!(requests[1]["messages"], requests[2]["messages"]);
     // Os dois resultados numa mensagem só, com o id de cada chamada.
@@ -878,7 +878,7 @@ async fn modelos_pela_regra_com_paginas_e_contagem_de_tokens() {
     let sent = setup.claude.state.lock().unwrap().count_tokens.clone();
     assert_eq!(sent[0]["model"], "claude-sonnet-5-5");
     assert!(sent[0]["system"][0]["text"].is_string());
-    assert_eq!(sent[0]["tools"].as_array().unwrap().len(), 16);
+    assert_eq!(sent[0]["tools"].as_array().unwrap().len(), 18);
     assert_eq!(
         sent[0]["messages"][0]["content"][0]["text"],
         "texto inicial"
@@ -886,5 +886,68 @@ async fn modelos_pela_regra_com_paginas_e_contagem_de_tokens() {
     assert!(
         setup.claude.requests().is_empty(),
         "contar não gera resposta"
+    );
+}
+
+#[tokio::test]
+async fn cada_pergunta_usa_o_modelo_e_o_limite_do_seu_modo() {
+    // ADR-0064: "Procurar rápido" faz menos consultas que "Procurar a fundo", e cada pergunta
+    // sai no modelo do seu modo; a conversa guarda os dois por pergunta.
+    let setup = Setup::new(Box::new(|_, request| {
+        if request["tool_choice"]["type"] == "none" {
+            text(&simple_answer().to_string())
+        } else {
+            calls(&[("list_mods", json!({}))])
+        }
+    }))
+    .await;
+    let mut conv = conversation();
+    warden_ai::engine::push_question(&mut conv, "Está lento".into());
+    conv.turns[0].mode = Some(SearchMode::Quick);
+    conv.turns[0].model = Some("claude-sonnet-5-5".into());
+    let quick = Engine {
+        limits: Limits::for_mode(Some(SearchMode::Quick)),
+        ..setup.engine()
+    };
+    quick.run(&mut conv).await.unwrap();
+    let first = setup.claude.requests().len();
+    assert_eq!(
+        first,
+        usize::try_from(SearchMode::Quick.max_rounds()).unwrap() + 1,
+        "as rodadas do modo rápido e a reserva"
+    );
+
+    warden_ai::engine::push_question(&mut conv, "E a fundo?".into());
+    conv.turns[1].mode = Some(SearchMode::Deep);
+    conv.turns[1].model = Some("claude-opus-5-5".into());
+    let deep = Engine {
+        limits: Limits::for_mode(Some(SearchMode::Deep)),
+        ..setup.engine()
+    };
+    deep.run(&mut conv).await.unwrap();
+    assert!(
+        setup.claude.refusals().is_empty(),
+        "{:?}",
+        setup.claude.refusals()
+    );
+    let requests = setup.claude.requests();
+    assert_eq!(
+        requests.len() - first,
+        usize::try_from(SearchMode::Deep.max_rounds()).unwrap() + 1
+    );
+    assert!(
+        requests[..first]
+            .iter()
+            .all(|r| r["model"] == "claude-sonnet-5-5")
+    );
+    assert!(
+        requests[first..]
+            .iter()
+            .all(|r| r["model"] == "claude-opus-5-5")
+    );
+    assert_eq!(conv.turns[1].model_or(&conv.model), "claude-opus-5-5");
+    assert_eq!(
+        conv.model, "claude-sonnet-5-5",
+        "o modelo da conversa não muda"
     );
 }

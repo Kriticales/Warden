@@ -205,6 +205,7 @@ mod tests {
             serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
         assert_eq!(saved["aiOrder"], serde_json::json!(["openai", "anthropic", "gemini"]));
         assert_eq!(saved["aiProvider"], "openai", "uma versão anterior lê o primeiro");
-        assert_eq!(saved["tier"], "careful");
+        // A escolha fixa do modelo de antes da ADR-0064 some na gravação (o modo é por pergunta).
+        assert!(saved.get("tier").is_none(), "{saved}");
     }
 }

@@ -1,14 +1,13 @@
 /**
  * Backend simulado com estado para a IA em Configurações (D-18; ADR-0070): a ordem de
- * preferência dos provedores, a escolha do modelo de cada um e o provedor das conversas novas
- * (o primeiro da ordem com a chave funcionando, como no Rust). Junto com `mockSettingsBackend`,
- * que guarda o estado das chaves e o último teste.
+ * preferência dos provedores e o provedor das conversas novas (o primeiro da ordem com a chave
+ * funcionando, como no Rust). O modo é escolhido a cada pergunta (ADR-0064), não aqui. Junto
+ * com `mockSettingsBackend`, que guarda o estado das chaves e o último teste.
  */
 import type {
   AiProvider,
   AiSettingsView,
   ModelChoices,
-  ModelTier,
   SecretsStatus,
 } from '../../../lib/ipc/bindings';
 import type { Handler } from '../../../test/backend';
@@ -27,7 +26,6 @@ export const TEST_MODELS: Record<AiProvider, ModelChoices> = {
 
 export interface FakeAiState {
   order: AiProvider[];
-  tiers: Record<AiProvider, ModelTier>;
 }
 
 export function fakeAiHandlers(
@@ -41,7 +39,6 @@ export function fakeAiHandlers(
     order: provider
       ? [provider, ...AI_PROVIDERS.filter((item) => item !== provider)]
       : [...AI_PROVIDERS],
-    tiers: { gemini: 'economical', openai: 'economical', anthropic: 'economical' },
     ...initial,
   };
   const usable = (provider: AiProvider) => secrets()[provider] && !refused(provider);
@@ -49,7 +46,6 @@ export function fakeAiHandlers(
   const view = (): AiSettingsView => {
     const providers = AI_PROVIDERS.map((provider) => ({
       provider,
-      tier: state.tiers[provider],
       keyConfigured: secrets()[provider],
       keyRefused: refused(provider),
       models: null,
@@ -58,7 +54,6 @@ export function fakeAiHandlers(
     if (!active) throw new Error('sem provedor');
     return {
       provider: active.provider,
-      tier: active.tier,
       keyConfigured: active.keyConfigured,
       models: active.models,
       providers,
@@ -77,10 +72,6 @@ export function fakeAiHandlers(
       ai_order_set: ({ order }) => {
         const asked = order as AiProvider[];
         state.order = [...asked, ...AI_PROVIDERS.filter((item) => !asked.includes(item))];
-        return view();
-      },
-      ai_settings_set: ({ tier }) => {
-        state.tiers = { ...state.tiers, [current()]: tier as ModelTier };
         return view();
       },
       ai_models_get: () => TEST_MODELS[current()],

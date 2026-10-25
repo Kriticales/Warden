@@ -1,13 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { StandaloneConversation } from '../features/diagnostics/ai-sem-pack/StandaloneConversation';
-
-/** Uma conversa sem pack (SPEC T14 item 8), com "← Analisar um log". */
+/**
+ * Uma conversa sem pack (SPEC T14 item 8). Quem desenha é a página (`analisar-log.tsx`), que lê o
+ * `conversaId` desta rota.
+ */
 export const Route = createFileRoute('/analisar-log/$conversaId')({
-  component: StandaloneConversationRoute,
+  component: () => null,
 });
-
-function StandaloneConversationRoute() {
-  const { conversaId } = Route.useParams();
-  return <StandaloneConversation key={conversaId} conversationId={conversaId} />;
-}

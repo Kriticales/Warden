@@ -1,8 +1,8 @@
 /**
- * Textos derivados das conversas (SPEC T14 ✦; glossário da QUALITY §8): o título de cada bloco
- * "Enviado à IA" (a partir da ferramenta e dos argumentos que a IA pediu), o rótulo de cada selo
- * de evidência (de onde veio o trecho), o medidor de confiança e o erro gravado na conversa
- * como `AppError`, para a frase traduzida de sempre.
+ * Textos derivados das conversas do Sensor Sculk (SPEC T14; glossário da QUALITY §8): o título
+ * de cada consulta "Enviado ao Sculk" (a partir da ferramenta e dos argumentos que o Sculk
+ * pediu), o rótulo de cada selo de evidência (de onde veio o trecho), o medidor de confiança e o
+ * erro gravado na conversa como `AppError`, para a frase traduzida de sempre.
  */
 import i18n from '../../../i18n';
 import type {
@@ -103,15 +103,24 @@ export function stepLabel(step: ToolStep): string {
       return tt('enviado.dependentes', { mod });
     case 'why_in_pack':
       return tt('enviado.porQue', { mod });
+    case 'get_test_performance':
+      return tt('enviado.desempenho');
+    case 'get_performance_profile':
+      return tt('enviado.perfilDesempenho', { sessao });
     default:
       // D-14: consultas externas, raio-x, busca do culpado e propostas.
       return d14StepLabel(step, args) ?? tt('enviado.outra', { nome: step.name });
   }
 }
 
+/** Bytes do texto em UTF-8 (o que foi enviado). */
+export function byteLength(text: string): number {
+  return new TextEncoder().encode(text).length;
+}
+
 /** Tamanho do que foi enviado ("2,1 KB"). */
 export function sentSize(sent: string): string {
-  return formatBytes(new TextEncoder().encode(sent).length);
+  return formatBytes(byteLength(sent));
 }
 
 /** De onde veio o trecho, pelo id da evidência ("log, linha 1.234"). */
@@ -141,6 +150,12 @@ export function evidenceLabel(id: string): string {
       return tt('selo.grafo', { mod: value });
     case 'pack':
       return tt('selo.visaoGeral');
+    case 'perf':
+      return value === 'comparacao'
+        ? tt('selo.comparacao')
+        : tt('selo.desempenho', { sessao: sessionLabel(value) });
+    case 'perfprofile':
+      return tt('selo.perfilDesempenho', { sessao: sessionLabel(value.split('#')[0] ?? value) });
     default:
       // D-14: issues, changelogs, raio-x e busca do culpado.
       return d14EvidenceLabel(kind, value) ?? id;
@@ -155,6 +170,22 @@ export function meterBlocks(confidence: ConfidenceMeter): number {
 /** O nome do sintoma. */
 export function symptomLabel(symptom: AiSymptom): string {
   return tt(`sintoma.${symptom}.titulo`);
+}
+
+/** "Conversa sobre …": o que foi analisado, no meio da frase. */
+export function aboutLabel(origin: ConversationOrigin): string {
+  switch (origin.kind) {
+    case 'session':
+      return origin.lastCrash
+        ? tt('origem.sobre.travamento', { sessao: sessionLabel(origin.sessionId) })
+        : tt('origem.sobre.teste', { sessao: sessionLabel(origin.sessionId) });
+    case 'localFile':
+      return tt('origem.sobre.arquivo', { arquivo: origin.fileName });
+    case 'packOnly':
+      return tt('origem.sobre.soPack');
+    case 'pasteLink':
+      return tt('origem.sobre.link', { site: origin.site === 'mclogs' ? 'mclo.gs' : 'pastebin' });
+  }
 }
 
 /** O que foi analisado ("Travamento de 03/10 às 21:10", "crash-x.txt", "Só o pack"). */

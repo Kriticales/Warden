@@ -6,7 +6,7 @@
  *   sempre exatamente estas 6 (CA-T05-03), nenhuma sétima e nenhuma aba. Só muda por ADR.
  * - `sectionPages`: a página de cada seção e o contador. **Registro acréscimo-apenas**
  *   (ROADMAP §1): a tarefa dona de cada seção acrescenta uma linha quando a rota existir
- *   (Configs: C-02; Problemas: D-03; ✦ Diagnóstico com IA: D-04; Histórico: V-02, já
+ *   (Configs: C-02; Problemas: D-03; ✦ Sensor Sculk: D-04; Histórico: V-02, já
  *   registrada; Exportar: E-01, já registrada). Seção sem página aparece no menu desabilitada, com o motivo na dica.
  *
  * `useCount` é um hook (chamado sempre, na mesma ordem, porque a lista é fixa): devolve o

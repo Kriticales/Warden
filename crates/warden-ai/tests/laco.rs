@@ -149,9 +149,9 @@ async fn paralelas_malformada_e_resposta_pela_responder() {
     let requests = setup.gemini.requests();
     // A primeira rodada só libera as iniciais; depois do crash report, todas. Sempre ANY (a
     // resposta tem de ser uma chamada; D-15b), temperatura 1.0, declarações iguais.
-    assert_eq!(allowed(&requests[0]).len(), 12);
+    assert_eq!(allowed(&requests[0]).len(), 14);
     assert!(!allowed(&requests[0]).contains(&"read_config".to_owned()));
-    assert_eq!(allowed(&requests[2]).len(), 16);
+    assert_eq!(allowed(&requests[2]).len(), 18);
     assert!(allowed(&requests[0]).contains(&"responder".to_owned()));
     for request in &requests {
         assert_eq!(mode(request), "ANY");

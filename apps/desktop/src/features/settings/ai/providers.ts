@@ -11,7 +11,7 @@ import type {
   AiProvider,
   AppError,
   ModelChoices,
-  ModelTier,
+  SearchMode,
   SecretKind,
 } from '../../../lib/ipc/bindings';
 import { appErrorMessage, errorCodeText } from '../../../lib/ipc/errors';
@@ -35,10 +35,13 @@ export function providerFullName(provider: AiProvider): string {
   return i18n.t(`ia:provedores.${provider}.completo`);
 }
 
-/** O modelo que o backend usa para a escolha (sem ele, o do outro nível, como no Rust). */
-export function modelFor(models: ModelChoices | undefined, tier: ModelTier): string | null {
+/**
+ * O modelo que o backend usa no modo (ADR-0064; sem ele, o do outro modo, como no Rust). No
+ * Gemini não há modo: os dois campos têm o mesmo Flash.
+ */
+export function modelFor(models: ModelChoices | undefined, mode: SearchMode): string | null {
   if (!models) return null;
-  return tier === 'careful'
+  return mode === 'deep'
     ? (models.careful ?? models.economical)
     : (models.economical ?? models.careful);
 }

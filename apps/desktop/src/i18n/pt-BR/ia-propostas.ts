@@ -1,6 +1,6 @@
 /**
- * Textos das propostas da IA e das consultas externas (SPEC T14 ✦ passos 2 e 3; ROADMAP D-14;
- * protótipo `design/prototipo-final/screens-diag.js`, `ia-conversa`). Glossário (QUALITY §8.2):
+ * Textos das propostas do Sculk e das consultas externas (SPEC T14 passos 2 e 3; ROADMAP D-14;
+ * protótipo `design/bug-01/sensor-sculk.html`). Glossário (QUALITY §8.2):
  * "proposta" com o botão **Aplicar**, "ponto de segurança", "Enviado ao GitHub", "encontrar o mod
  * culpado", "config", lado "Cliente e servidor"/"Só cliente"/"Só servidor", "Ajustes do teste".
  * Texto fixo da SPEC: "Nada muda no pack sem você clicar em Aplicar".
@@ -11,7 +11,8 @@ export const iaPropostas = {
     pendentes_other: '{{count}} propostas esperando você',
   },
   cartoes: {
-    titulo: 'Propostas',
+    titulo_one: '{{count}} proposta',
+    titulo_other: '{{count}} propostas',
     rotulo: 'Proposta',
     comBaseEm: 'Com base em',
     nadaMuda: 'Nada muda no pack sem você clicar em Aplicar.',
@@ -58,7 +59,7 @@ export const iaPropostas = {
     testarAgora: 'Testar agora',
     comecarBusca: 'Começar a busca',
     desfazer: 'Desfazer',
-    esperandoIa: 'Espere a IA terminar de responder para decidir.',
+    esperandoIa: 'Espere o Sculk terminar de responder para decidir.',
     comJogoAberto: 'Feche o jogo aberto para testar.',
   },
   estado: {

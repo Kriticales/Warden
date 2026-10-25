@@ -1,5 +1,5 @@
 /**
- * Chamadas do ✦ Diagnóstico com IA (ARCHITECTURE §4.1, domínio `ai`; ROADMAP D-04).
+ * Chamadas do Sensor Sculk (ARCHITECTURE §4.1, domínio `ai`; ROADMAP D-04; ADR-0064).
  *
  * Chaves (dados sempre atuais, QUALITY §4):
  * - as conversas ficam sob o pack (`['pack', id, 'ai', …]`): o `ai-conversation-updated` (cada
@@ -7,8 +7,9 @@
  *   de qualquer área também, porque a conversa mostra "o pack mudou desde esta conversa";
  * - as origens ("Começar pelo") ficam sob as sessões do Testar (`testKeys.sessions`): o fim de um
  *   teste, que invalida as sessões, invalida também as origens;
- * - o provedor, a escolha do modelo e os modelos ficam no app (`['app', 'ai', …]`), os modelos
- *   por provedor (D-18: trocar de provedor nunca mostra os modelos do outro); as chaves vêm do
+ * - o provedor e os modelos ficam no app (`['app', 'ai', …]`), os modelos por provedor (D-18:
+ *   trocar de provedor nunca mostra os modelos do outro); o modo ("Procurar rápido" ou
+ *   "Procurar a fundo") vai em cada pergunta, não fica em Configurações; as chaves vêm do
  *   estado das chaves de Configurações (`settingsKeys.secrets`). Salvar, substituir ou remover
  *   uma chave invalida também `['app', 'ai']` (`settings/api.ts`): o "tem chave" e os modelos.
  *
@@ -23,7 +24,7 @@ import {
   type AiPermissions,
   type AiProvider,
   type AiPreviewRequest,
-  type ModelTier,
+  type SearchMode,
   type PackId,
 } from '../../../lib/ipc/bindings';
 import { useTauriEvent } from '../../../lib/ipc/events';
@@ -44,9 +45,9 @@ export const aiKeys = {
     [...queryKeys.pack(packId), 'ai', 'conversation', id] as const,
   /** As origens de "Começar pelo" (sob as sessões do Testar). */
   sources: (packId: PackId) => [...testKeys.sessions(packId), 'ai-sources'] as const,
-  /** Tudo da IA no app (provedor, escolhas e modelos). */
+  /** Tudo da IA no app (provedor e modelos). */
   app: AI_APP_KEY,
-  /** O provedor e a escolha do modelo de cada provedor. */
+  /** O provedor das conversas novas e as chaves. */
   settings: ['app', 'ai', 'settings'] as const,
   /** Os modelos que a chave de um provedor alcança. */
   models: (provider: AiProvider) => ['app', 'ai', 'models', provider] as const,
@@ -56,19 +57,9 @@ export function useAiSettings() {
   return useQuery(commandQuery(aiKeys.settings, commands.aiSettingsGet));
 }
 
-export function useSetAiTier() {
-  const queryClient = useQueryClient();
-  return useCommandMutation((tier: ModelTier) => commands.aiSettingsSet(tier), {
-    onSuccess: (view) => {
-      queryClient.setQueryData(aiKeys.settings, view);
-    },
-    invalidates: [aiKeys.settings],
-  });
-}
-
 /**
  * Troca o provedor das conversas novas (D-18). As conversas já começadas continuam no delas.
- * A seção da IA e Configurações leem o provedor de `aiKeys.settings`, gravado aqui.
+ * O Sensor Sculk e Configurações leem o provedor de `aiKeys.settings`, gravado aqui.
  */
 export function useSetAiProvider() {
   const queryClient = useQueryClient();
@@ -145,14 +136,14 @@ export function runInBackground(queryClient: QueryClient, packId: PackId, id: st
   void run
     .then(unwrap)
     .catch((error: unknown) => {
-      log.info('a IA parou com erro (gravado na conversa)', error);
+      log.info('o Sculk parou com erro (gravado na conversa)', error);
     })
     .finally(() => {
       void queryClient.invalidateQueries({ queryKey: aiKeys.all(packId) });
     });
 }
 
-/** "✦ Começar conversa": grava a conversa e começa a rodar. Devolve o id. */
+/** "Enviar e começar": grava a conversa e começa a rodar. Devolve o id. */
 export function useStartConversation(packId: PackId) {
   const queryClient = useQueryClient();
   return useCommandMutation(
@@ -167,15 +158,19 @@ export function useStartConversation(packId: PackId) {
   );
 }
 
-/** Uma pergunta nova na conversa. */
+/** Uma pergunta nova na conversa, com o modo dela (`null` no Gemini). */
 export function useSendQuestion(packId: PackId, id: string) {
   const queryClient = useQueryClient();
-  return useCommandMutation((text: string) => commands.aiConversationSend(packId, id, text), {
-    invalidates: [aiKeys.conversation(packId, id), aiKeys.list(packId)],
-    onSuccess: () => {
-      runInBackground(queryClient, packId, id);
+  return useCommandMutation(
+    ({ text, mode }: { text: string; mode: SearchMode | null }) =>
+      commands.aiConversationSend(packId, id, text, mode),
+    {
+      invalidates: [aiKeys.conversation(packId, id), aiKeys.list(packId)],
+      onSuccess: () => {
+        runInBackground(queryClient, packId, id);
+      },
     },
-  });
+  );
 }
 
 /** "Tentar de novo" depois de um erro ou de uma resposta interrompida. */

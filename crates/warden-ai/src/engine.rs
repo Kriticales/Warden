@@ -41,7 +41,8 @@ use crate::error::{Error, Result};
 use crate::evidence::check_answer;
 use crate::proposals;
 use crate::providers::{
-    ChatRequest, ChatResponse, Failure, Message, Provider, Role, ToolCall, ToolChoice, ToolResult,
+    ChatRequest, ChatResponse, Failure, Message, Provider, Role, SearchMode, ToolCall, ToolChoice,
+    ToolResult,
 };
 use crate::schema::{self, ROUND_LIMIT_MESSAGE, SYSTEM_PROMPT};
 use crate::tools::{
@@ -62,6 +63,18 @@ pub struct Limits {
     /// Teto de tokens processados por conversa (ARCHITECTURE §9.5 "Laço"): passando dele, a
     /// pergunta vai direto para a reserva, sem mais consultas, como no estouro das rodadas.
     pub max_tokens: u64,
+}
+
+impl Limits {
+    /// Os limites de uma pergunta no modo dado (ADR-0064): "Procurar rápido" faz menos
+    /// consultas; sem modo (Gemini e conversas antigas), as 8 de sempre.
+    #[must_use]
+    pub fn for_mode(mode: Option<SearchMode>) -> Self {
+        Self {
+            max_rounds: mode.map_or(Self::default().max_rounds, SearchMode::max_rounds),
+            ..Self::default()
+        }
+    }
 }
 
 impl Default for Limits {
@@ -159,6 +172,8 @@ pub fn push_question(conversation: &mut Conversation, question: String) {
         failure: None,
         fallback_model: None,
         fallback_reason: None,
+        mode: None,
+        model: None,
     });
     conversation.updated_at_ms = now_ms();
 }
@@ -291,12 +306,12 @@ impl Engine<'_> {
         let mut model_retries = 0;
         let mut round_limit = fallback;
         // A pergunta que já trocou para o modelo mais leve (retomada depois de um erro) continua
-        // nele.
-        let mut model = conversation
-            .turns
-            .last()
-            .and_then(|turn| turn.fallback_model.clone())
-            .unwrap_or_else(|| conversation.model.clone());
+        // nele;
+        // e a do modo escolhido (ADR-0064), no modelo do modo.
+        let mut model = conversation.turns.last().map_or_else(
+            || conversation.model.clone(),
+            |turn| turn.model_or(&conversation.model).to_owned(),
+        );
         loop {
             if self.cancel.is_cancelled() {
                 return Err(Error::Cancelled);

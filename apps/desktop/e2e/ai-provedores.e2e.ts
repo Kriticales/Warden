@@ -1,12 +1,14 @@
 /**
- * IA com vários provedores no app real (D-18; ADR-0060; SPEC T14 ✦ e T21), com os servidores
- * simulados de `mock-server/` (o do Gemini exige a chave só no cabeçalho e o histórico intacto,
- * como a API real):
+ * O Sensor Sculk com vários provedores no app real (D-18; ADR-0060 e ADR-0064; SPEC T14 e T21),
+ * com os servidores simulados de `mock-server/` (o do Gemini exige a chave só no cabeçalho e o
+ * histórico intacto, como a API real):
  *
  * - CA-T21-06 (ADR-0070): em Chaves e contas, a chave do Gemini salva pela tela é testada na
  *   hora e fica "Funcionando"; em Configurações → Sensor Sculk, o Gemini abre as conversas
  *   novas, com o modelo; pôr a OpenAI (sem chave) em primeiro não muda o provedor das conversas
- *   novas ("Pulado: sem chave"); reiniciar mantém a ordem; nenhuma chave aparece em
+ *   novas ("Pulado: sem chave"); reiniciar mantém a ordem; não há mais escolha de modelo
+ *   (CA-T14-31: um `ai/settings.json` antigo, com a escolha fixa, continua abrindo e a perde na
+ *   próxima gravação); nenhuma chave aparece em
  *   `settings.json` nem em `ai/settings.json` (varredura);
  * - CA-T14-20 (Gemini): a conversa nova usa o provedor escolhido; o consentimento mostra o nome
  *   do provedor e o modelo, com o aviso de plano gratuito;
@@ -15,8 +17,10 @@
  *   novo mostra qual chave falta, sem nenhuma requisição de rede.
  *
  * - CA-T14-20 (OpenAI e Claude, ligados na junção do lote 12 com os simulados e os tradutores da
- *   D-16/D-17): a chave pela tela, o provedor em primeiro na ordem, o modelo da regra na seção
- *   e no consentimento, sem plano gratuito, e a conversa nova só nesse provedor.
+ *   D-16/D-17): a chave pela tela, o provedor em primeiro na ordem, o modelo da regra na Nova
+ *   conversa e no consentimento, sem plano gratuito, e a conversa nova só nesse provedor;
+ * - CA-T14-31: no Claude, "Procurar rápido" manda a primeira pergunta no Sonnet e "Procurar a
+ *   fundo" manda a pergunta seguinte no Opus; Detalhes mostra os dois modos.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -24,12 +28,12 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { $, browser, expect } from '@wdio/globals';
+import { $, $$, browser, expect } from '@wdio/globals';
 
 import { seriousViolationSummaries } from './axe';
 import { ANTHROPIC_E2E_KEY, ANTHROPIC_E2E_MODEL } from './mock-server/anthropic';
 import { GEMINI_E2E_KEY } from './mock-server/gemini';
-import { OPENAI_E2E_KEY, OPENAI_E2E_MODEL } from './mock-server/openai';
+import { OPENAI_E2E_KEY } from './mock-server/openai';
 import { openOrImport } from './open-or-import';
 import { dismissToasts } from './toasts';
 
@@ -202,13 +206,41 @@ async function moveToTop(provider: AiProvider): Promise<void> {
   }
 }
 
-/** Meus packs → o pack → ✦ Diagnóstico com IA. */
+/** Meus packs → o pack → Sensor Sculk. */
 async function openAiSection(): Promise<void> {
   await openMyPacks();
   await clickStable($(`tr.packrow*=${PACK_NAME}`).$('button.packrow__title'));
   await waitHeading('Mods');
-  await clickStable($('nav[aria-label="Seções do pack"]').$('a*=Diagnóstico com IA'));
-  await waitHeading('Diagnóstico com IA');
+  await clickStable($('nav[aria-label="Seções do pack"]').$('a*=Sensor Sculk'));
+  await $('aside.sculk__convs').waitForDisplayed({ timeout: 30_000 });
+}
+
+/** Nova conversa: só o pack, "Outra coisa" e Começar conversa; devolve o consentimento. */
+async function startNew(): Promise<ReturnType<typeof $>> {
+  const form = $('form.newconv');
+  await form.waitForDisplayed({ timeout: 30_000 });
+  await form.$('select.select').selectByAttribute('value', 'pack');
+  await clickStable(form.$('button[role="radio"]*=Outra coisa'));
+  await clickStable(form.$('button*=Começar conversa'));
+  const dialog = $('[role="dialog"]');
+  await dialog.$('h2*=Começar uma conversa com o Sculk?').waitForDisplayed({ timeout: 30_000 });
+  return dialog;
+}
+
+/** Espera a resposta do Sculk (o rodapé "O Sculk pode errar…"). */
+async function waitAnswer(count = 1): Promise<void> {
+  await browser.waitUntil(async () => (await $$('.ai__foot').length) >= count, {
+    timeout: 60_000,
+    timeoutMsg: 'a resposta do Sculk não chegou',
+  });
+}
+
+/** Abre a gaveta Detalhes da conversa aberta. */
+async function openDetails(): Promise<ReturnType<typeof $>> {
+  await clickStable($('button[aria-controls="sculk-detalhes"]'));
+  const drawer = $('#sculk-detalhes');
+  await drawer.waitForDisplayed({ timeout: 10_000 });
+  return drawer;
 }
 
 function aiSettings(): { aiProvider?: string; aiOrder?: string[] } {
@@ -273,11 +305,9 @@ describe('IA com vários provedores (D-18)', function () {
     await screenshot('d18-01-sensor-sculk-gemini');
 
     await openAiSection();
-    await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
-    await $('select.select').selectByAttribute('value', 'pack');
-    await clickStable($('main').$('button=Começar conversa'));
-    const dialog = $('[role="dialog"]');
-    await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+    // No Gemini não há "Procurar rápido | Procurar a fundo".
+    await expect($('form.newconv').$('span=Como procurar')).not.toBeExisting();
+    const dialog = await startNew();
     await expect(dialog).toHaveText(
       expect.stringContaining('Google Gemini (gemini-9.1-flash), com a sua chave'),
     );
@@ -285,22 +315,27 @@ describe('IA com vários provedores (D-18)', function () {
     await expect(dialog).toHaveText(expect.stringContaining('poucas conversas por dia'));
     expect(await axeAfterToasts()).toEqual([]);
     await screenshot('d18-02-consentimento-gemini');
-    await clickStable(dialog.$('button=Começar conversa'));
-    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
-    await expect($('p*=com Gemini')).toBeDisplayed();
+    await clickStable(dialog.$('button*=Enviar e começar'));
+    await waitAnswer();
+    await expect($('span.sculk__meta*=Gemini ·')).toBeDisplayed();
     const state = await gemini();
     expect(state.refusals).toEqual([]);
     expect(state.generate.length).toBe(2);
   });
 
-  it('CA-T21-06 (ADR-0070): a OpenAI sem chave em primeiro é pulada; a ordem fica depois de reiniciar; nenhuma chave nos arquivos', async () => {
+  it('CA-T21-06 (ADR-0070) e CA-T14-31: a OpenAI sem chave em primeiro é pulada; a escolha fixa do modelo some; a ordem fica depois de reiniciar; nenhuma chave nos arquivos', async () => {
+    // Um `ai/settings.json` de antes da ADR-0064, com a escolha fixa do modelo: continua abrindo.
+    writeFileSync(
+      AI_SETTINGS_FILE,
+      '{ "aiProvider": "gemini", "tier": "careful", "tiers": { "openai": "careful" } }\n',
+    );
     await openSettings('Sensor Sculk');
     await clickStable(orderRow('openai').$('button[aria-label="Subir OpenAI"]'));
     await browser.waitUntil(() => aiSettings().aiOrder?.[0] === 'openai', {
       timeout: 30_000,
       timeoutMsg: 'a ordem não foi gravada',
     });
-    expect(aiSettings()).toMatchObject({
+    expect(aiSettings()).toEqual({
       aiOrder: ['openai', 'gemini', 'anthropic'],
       aiProvider: 'openai',
     });
@@ -332,13 +367,13 @@ describe('IA com vários provedores (D-18)', function () {
   it('CA-T14-21 (telas): a conversa do Gemini continua nele; sem a chave dele, pede a chave e nada vai para a rede', async () => {
     // A OpenAI está em primeiro, sem chave: a conversa do Gemini continua nele.
     await openAiSection();
-    const list = $('section[aria-labelledby="ia-conversas"]');
-    await clickStable(list.$('a*=Continuar'));
-    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
-    await expect($('p*=com Gemini')).toBeDisplayed();
-    await expect($('aside[aria-label="Sobre esta conversa"]')).toHaveText(
-      expect.stringContaining('gemini-9.1-flash'),
-    );
+    await clickStable($('aside.sculk__convs').$('a.conv'));
+    await waitAnswer();
+    await expect($('span.sculk__meta*=Gemini ·')).toBeDisplayed();
+    const details = await openDetails();
+    await expect(details).toHaveText(expect.stringContaining('gemini-9.1-flash'));
+    await browser.keys('Escape');
+    await details.waitForExist({ reverse: true, timeout: 10_000 });
     await expect($('div.alert*=Falta a chave do Gemini')).not.toBeExisting();
 
     // Sem a chave do Gemini, a conversa pede essa chave. Remover avisa que ninguém assume.
@@ -357,7 +392,7 @@ describe('IA com vários provedores (D-18)', function () {
     // Sem nenhuma chave, a seção pede a chave do primeiro da ordem (a OpenAI).
     await openAiSection();
     await $('.empty__title*=Falta a chave da OpenAI').waitForDisplayed({ timeout: 30_000 });
-    await clickStable($('section[aria-labelledby="ia-conversas"]').$('a*=Continuar'));
+    await clickStable($('aside.sculk__convs').$('a.conv'));
     const notice = $('div.alert*=Falta a chave do Gemini');
     await notice.waitForDisplayed({ timeout: 30_000 });
     await expect(notice).toHaveText(
@@ -367,30 +402,31 @@ describe('IA com vários provedores (D-18)', function () {
     await screenshot('d18-04-conversa-sem-chave');
 
     // Perguntar de novo: o erro diz qual chave falta, e nenhuma requisição sai.
-    await $('textarea').setValue('E se eu tirar o Sodium?');
-    await clickStable($('button=Enviar'));
+    await $('form.composer').$('textarea').setValue('E se eu tirar o Sodium?');
+    await clickStable($('form.composer').$('button*=Enviar'));
     const failure = $('div[role="alert"]*=Esta conversa começou com Gemini');
     await failure.waitForDisplayed({ timeout: 60_000 });
     await expect(failure).toHaveText(expect.stringContaining('Nada foi alterado no pack.'));
     expect((await gemini()).generate.length).toBe(before);
 
-    // "Abrir Configurações" do aviso leva a Configurações.
+    // "Abrir Configurações" do aviso leva à chave do Gemini em Chaves e contas.
     await clickStable(notice.$('a=Abrir Configurações'));
-    await waitHeading('Geral');
+    await waitHeading('Chaves e contas');
+    await expect($('section.keydet')).toHaveText(expect.stringContaining('Gemini'));
   });
 
   /**
    * CA-T14-20 com a OpenAI e o Claude: a chave salva pela tela passa no teste, o provedor vai para
-   * o primeiro da ordem, a seção mostra o provedor e o modelo que a regra escolheu na lista do
-   * simulado (D-16/D-17), o consentimento diz o provedor e o modelo, sem plano gratuito, e a
-   * conversa nova vai só a esse provedor.
+   * o primeiro da ordem, a Nova conversa mostra o provedor e o modelo que a regra escolheu na
+   * lista do simulado para o modo (D-16/D-17; ADR-0064), o consentimento diz o provedor e o
+   * modelo, sem plano gratuito, e a conversa nova vai só a esse provedor.
    */
   async function conversationWith(options: {
     provider: AiProvider;
     radio: string;
     key: string;
     model: string;
-    tier: string;
+    mode: 'Procurar rápido' | 'Procurar a fundo';
     charge: string;
     shot: string;
   }): Promise<void> {
@@ -402,19 +438,17 @@ describe('IA com vários provedores (D-18)', function () {
       .waitForDisplayed({ timeout: 30_000 });
 
     await openAiSection();
-    await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
-    const line = $('p.ai-model');
+    await clickStable($('aside.sculk__convs').$('button*=Nova conversa'));
+    const form = $('form.newconv');
+    await form.waitForDisplayed({ timeout: 30_000 });
+    await clickStable(form.$(`button[role="radio"]=${options.mode}`));
+    const line = form.$('p.provline');
     await browser.waitUntil(
       async () =>
-        (await line.getText()).includes(
-          `Provedor: ${options.radio}. Modelo: ${options.model} (${options.tier}).`,
-        ),
-      { timeout: 30_000, timeoutMsg: `a seção não mostrou ${options.model}` },
+        (await line.getText()).includes(`Provedor: ${options.radio}. Modelo: ${options.model}.`),
+      { timeout: 30_000, timeoutMsg: `a Nova conversa não mostrou ${options.model}` },
     );
-    await $('select.select').selectByAttribute('value', 'pack');
-    await clickStable($('main').$('button=Começar conversa'));
-    const dialog = $('[role="dialog"]');
-    await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+    const dialog = await startNew();
     await expect(dialog).toHaveText(
       expect.stringContaining(`${options.radio} (${options.model}), com a sua chave`),
     );
@@ -422,12 +456,14 @@ describe('IA com vários provedores (D-18)', function () {
     await expect(dialog).not.toHaveText(expect.stringContaining('plano gratuito'));
     expect(await axeAfterToasts()).toEqual([]);
     await screenshot(options.shot);
-    await clickStable(dialog.$('button=Começar conversa'));
-    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
-    await expect($(`p*=com ${options.radio}`)).toBeDisplayed();
-    await expect($('aside[aria-label="Sobre esta conversa"]')).toHaveText(
-      expect.stringContaining(options.model),
-    );
+    await clickStable(dialog.$('button*=Enviar e começar'));
+    await waitAnswer();
+    await expect($(`span.sculk__meta*=${options.radio} ·`)).toBeDisplayed();
+    const details = await openDetails();
+    await expect(details).toHaveText(expect.stringContaining(options.model));
+    await expect(details).toHaveText(expect.stringContaining(options.mode));
+    await browser.keys('Escape');
+    await details.waitForExist({ reverse: true, timeout: 10_000 });
 
     // Só o provedor ativo recebeu a conversa, sem recusa; os outros dois ficaram parados.
     const after = await allProviders();
@@ -442,28 +478,55 @@ describe('IA com vários provedores (D-18)', function () {
   }
 
   it('CA-T14-20 (OpenAI): com a chave da OpenAI, a conversa nova vai só à OpenAI e o consentimento diz "OpenAI (gpt-…)"', async () => {
-    // O modelo da conversa é o "Mais econômico" (o modo de cada pergunta é da T1).
+    // "Procurar a fundo": a regra dá o `gpt-N-sol`.
     await conversationWith({
       provider: 'openai',
       radio: 'OpenAI',
       key: OPENAI_E2E_KEY,
-      model: OPENAI_E2E_MODEL,
-      tier: 'mais econômico',
+      model: 'gpt-9-sol',
+      mode: 'Procurar a fundo',
       charge: 'O uso é cobrado na sua chave da OpenAI',
       shot: 'd18-05-consentimento-openai',
     });
   });
 
-  it('CA-T14-20 (Claude): com a chave do Claude, a conversa nova vai só à Anthropic e o consentimento diz "Claude (claude-…)"', async () => {
-    // O Claude ficou em "Mais econômico": a regra dá o Sonnet mais novo da lista.
+  it('CA-T14-20 e CA-T14-31 (Claude): a conversa nova vai só à Anthropic; cada pergunta usa o modelo do seu modo', async () => {
+    // "Procurar rápido": a regra dá o Sonnet mais novo da lista.
     await conversationWith({
       provider: 'anthropic',
       radio: 'Claude',
       key: ANTHROPIC_E2E_KEY,
       model: ANTHROPIC_E2E_MODEL,
-      tier: 'mais econômico',
+      mode: 'Procurar rápido',
       charge: 'O uso é cobrado na sua chave da Anthropic',
       shot: 'd18-06-consentimento-claude',
     });
+    const anthropic = async () =>
+      ((await (await fetch(`${MOCK_URL}/__anthropic`)).json()) as GeminiState).generate;
+    const before = (await anthropic()).length;
+    expect(
+      (await anthropic()).every(
+        (body) => (JSON.parse(body) as { model: string }).model === ANTHROPIC_E2E_MODEL,
+      ),
+    ).toBe(true);
+
+    // A pergunta seguinte, "Procurar a fundo", sai no Opus mais novo da lista.
+    const composer = $('form.composer');
+    await expect(
+      composer.$('[role="radiogroup"][aria-label="Como o Sculk procura"]'),
+    ).toBeDisplayed();
+    await clickStable(composer.$('button[role="radio"]=Procurar a fundo'));
+    await composer.$('textarea').setValue('E se eu tirar o Sodium?');
+    await clickStable(composer.$('button*=Enviar'));
+    await waitAnswer(2);
+    const after = await anthropic();
+    expect(after.length).toBeGreaterThan(before);
+    for (const body of after.slice(before)) {
+      expect((JSON.parse(body) as { model: string }).model).toBe('claude-opus-9-5');
+    }
+    const details = await openDetails();
+    await expect(details).toHaveText(expect.stringContaining('1 rápido, 1 a fundo'));
+    expect(await axeAfterToasts()).toEqual([]);
+    await screenshot('d18-07-conversa-claude-modos');
   });
 });

@@ -1,7 +1,7 @@
 //! Escolha do modelo pelo `models.list` da conta (ADR-0055; ARCHITECTURE §9.5 "Modelo").
 //!
-//! Nenhum nome de modelo fica no código. As duas opções ("Mais econômico" e "Análise mais
-//! cuidadosa") usam o modelo mais forte que o plano gratuito da API permite, o **Flash estável
+//! Nenhum nome de modelo fica no código. No Gemini não há "Procurar rápido" nem "Procurar a
+//! fundo" (ADR-0064): toda pergunta usa o modelo mais forte que o plano gratuito da API permite, o **Flash estável
 //! mais novo** que a chave alcança (o Pro não tem plano gratuito: tabela de preços do Google,
 //! consultada em 19/10/2026); o **Flash-Lite estável mais novo** é o mais leve, que o laço usa
 //! sozinho numa pergunta quando a cota diária do Flash acaba (decisão do dono; ADR-0060,
@@ -14,7 +14,7 @@ use serde_json::Value;
 
 use super::{GeminiClient, Problem, api_message, classify};
 use crate::error::{Error, Result};
-use crate::providers::{ModelChoices, ModelTier};
+use crate::providers::{ModelChoices, SearchMode};
 
 /// Um modelo estável reconhecido: versão numérica e família.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,14 +45,14 @@ fn stable(name: &str) -> Option<Stable> {
     })
 }
 
-/// O nível de um nome de modelo (`None`: não é um Flash nem um Flash-Lite estável).
+/// O modo de um nome de modelo (`None`: não é um Flash nem um Flash-Lite estável).
 #[must_use]
-pub fn tier_of(model: &str) -> Option<ModelTier> {
+pub fn mode_of(model: &str) -> Option<SearchMode> {
     stable(model).map(|found| {
         if found.lite {
-            ModelTier::Economical
+            SearchMode::Quick
         } else {
-            ModelTier::Careful
+            SearchMode::Deep
         }
     })
 }
@@ -202,11 +202,8 @@ mod tests {
 
     #[test]
     fn nivel_pelo_nome() {
-        assert_eq!(
-            tier_of("gemini-3.5-flash-lite"),
-            Some(ModelTier::Economical)
-        );
-        assert_eq!(tier_of("gemini-3.8-flash"), Some(ModelTier::Careful));
-        assert_eq!(tier_of("gemini-pro-latest"), None);
+        assert_eq!(mode_of("gemini-3.5-flash-lite"), Some(SearchMode::Quick));
+        assert_eq!(mode_of("gemini-3.8-flash"), Some(SearchMode::Deep));
+        assert_eq!(mode_of("gemini-pro-latest"), None);
     }
 }

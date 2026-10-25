@@ -1,6 +1,6 @@
-import { Outlet, createFileRoute, useChildMatches } from '@tanstack/react-router';
+import { createFileRoute, useChildMatches } from '@tanstack/react-router';
 
-import { AiPage } from '../../../features/diagnostics/ai/AiPage';
+import { SculkPage } from '../../../features/diagnostics/ai/SculkPage';
 import type { AiSymptom } from '../../../lib/ipc/bindings';
 
 /**
@@ -15,7 +15,7 @@ interface AiSearch {
 }
 
 const SYMPTOMS: readonly AiSymptom[] = ['crashOnStart', 'crashInWorld', 'slow', 'other'];
-/** O assunto vai para "Contar algo"; um link nunca traz mais que isto. */
+/** O assunto vai para "Conte o que aconteceu"; um link nunca traz mais que isto. */
 const MAX_SUBJECT = 2000;
 
 function validateSearch(search: Record<string, unknown>): AiSearch {
@@ -34,28 +34,33 @@ function validateSearch(search: Record<string, unknown>): AiSearch {
 }
 
 /**
- * Seção ✦ Diagnóstico com IA do pack (SPEC T14; ESTRUTURA §13: "Conversar com a IA sobre um
- * problema do pack"). A conversa aberta é a rota filha (`ia.$conversaId.tsx`).
+ * Seção Sensor Sculk do pack (SPEC T14; ESTRUTURA §13: "Conversar com o Sculk sobre um problema
+ * do pack"; protótipo `design/bug-01/sensor-sculk.html`). A conversa aberta é a rota filha
+ * (`ia.$conversaId.tsx`), mas a página é uma só: a coluna de conversas fica no lugar ao trocar
+ * de conversa. A seção usa a área inteira e o menu do pack fica só com os ícones.
  */
 export const Route = createFileRoute('/packs/$packId/ia')({
   validateSearch,
+  staticData: { packMenu: 'compact' },
   component: AiRoute,
 });
 
 function AiRoute() {
   const { packId } = Route.useParams();
   const { sessao, assunto, sintoma } = Route.useSearch();
-  const children = useChildMatches();
-  if (children.length > 0) {
-    return <Outlet />;
-  }
+  const conversaId = useChildMatches({
+    select: (matches) => {
+      const params: Partial<Record<string, string>> = matches[0]?.params ?? {};
+      return params.conversaId ?? null;
+    },
+  });
   return (
-    <AiPage
-      key={`${sessao ?? ''}|${assunto ?? ''}|${sintoma ?? ''}`}
+    <SculkPage
       packId={packId}
-      sessionId={sessao ?? null}
-      subject={assunto ?? null}
-      symptom={sintoma ?? null}
+      conversationId={conversaId}
+      sessionId={conversaId ? null : (sessao ?? null)}
+      subject={conversaId ? null : (assunto ?? null)}
+      symptom={conversaId ? null : (sintoma ?? null)}
     />
   );
 }

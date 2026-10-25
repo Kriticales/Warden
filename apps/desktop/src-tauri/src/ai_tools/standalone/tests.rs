@@ -96,6 +96,7 @@ fn request(url: &str) -> AiStandalonePreviewRequest {
             url: url.to_owned(),
         },
         note: None,
+        mode: None,
     }
 }
 
@@ -572,6 +573,7 @@ async fn arquivo_do_computador_sem_pack() {
             symptom: AiSymptom::CrashOnStart,
             source: AiStandaloneSource::LocalFile { token: pick.token },
             note: Some("abre e fecha".into()),
+            mode: None,
         },
     )
     .await

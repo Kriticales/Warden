@@ -36,7 +36,7 @@ export const boasVindas = {
       'Todas são opcionais. Sem elas o Warden funciona; só algumas partes ficam de fora. Elas ficam guardadas no Cofre do Windows.',
     jaConfigurada: 'Já configurada. Deixe em branco para manter.',
     iaTexto:
-      'Para o Diagnóstico com IA, com a sua chave. O Gemini é o sugerido para começar, porque tem plano gratuito; a OpenAI e o Claude cobram por uso na sua conta.',
+      'Para o Sensor Sculk, com a sua chave. O Gemini é o sugerido para começar, porque tem plano gratuito; a OpenAI e o Claude cobram por uso na sua conta.',
   },
   voltar: 'Voltar',
   proximo: 'Próximo',

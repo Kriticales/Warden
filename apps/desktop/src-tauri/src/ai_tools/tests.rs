@@ -18,7 +18,7 @@ use serde_json::{Value, json};
 use sha2::{Digest as _, Sha256};
 use warden_ai::conversation::{AiSymptom, ConversationOrigin};
 use warden_ai::evidence::ClaimStatus;
-use warden_ai::providers::{AiProvider, ModelTier};
+use warden_ai::providers::{AiProvider, SearchMode};
 use warden_ai::tools::{AiPermissions, ToolSource as _};
 use warden_core::PackId;
 use warden_project::registry::PackRecord;
@@ -28,8 +28,8 @@ use wiremock::{Mock, MockServer, Request, Respond, ResponseTemplate};
 use super::PackTools;
 use crate::commands::ai::{
     AiConversationState, AiPreviewRequest, AiSource, GeminiKeyTester, delete_impl, get_impl,
-    list_impl, preview_impl, provider_set_impl, remember_pick, run_impl, send_impl,
-    settings_set_impl, settings_view, start_impl,
+    list_impl, preview_impl, provider_set_impl, remember_pick, run_impl, send_impl, settings_view,
+    start_impl,
 };
 use crate::commands::secrets::SecretTester as _;
 use crate::state::AppState;
@@ -257,6 +257,7 @@ async fn ca_t14_05_consentimento_sem_nada_do_pack_e_cancelar_sem_rede() {
             symptom: AiSymptom::CrashOnStart,
             source: AiSource::PackOnly,
             note: Some("trava quando entro no Nether".into()),
+            mode: None,
         },
     )
     .await
@@ -304,6 +305,7 @@ async fn ca_t14_03_texto_inicial_e_blocos_sao_o_que_saiu() {
             symptom: AiSymptom::Other,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -388,6 +390,7 @@ async fn ca_t14_06_log_do_computador_redigido_fora_do_pack_e_de_volta_ao_reabrir
             symptom: AiSymptom::CrashInWorld,
             source: AiSource::LocalFile { token: pick.token },
             note: None,
+            mode: None,
         },
     )
     .await
@@ -464,6 +467,7 @@ async fn ca_t14_15_pack_mudado_e_apagar_a_conversa() {
             symptom: AiSymptom::Slow,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -514,6 +518,7 @@ async fn apagar_enquanto_a_ia_responde_nao_traz_o_arquivo_de_volta() {
             symptom: AiSymptom::Slow,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -563,6 +568,7 @@ async fn pergunta_nova_so_depois_da_resposta() {
             symptom: AiSymptom::Other,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -575,12 +581,19 @@ async fn pergunta_nova_so_depois_da_resposta() {
     )
     .unwrap();
     // Ainda sem resposta: não dá para perguntar outra coisa.
-    assert!(send_impl(&setup.state, setup.pack, &id, "e agora?").is_err());
+    assert!(send_impl(&setup.state, setup.pack, &id, "e agora?", None).is_err());
     run_impl(&setup.state, setup.pack, &id, noop())
         .await
         .unwrap();
-    assert!(send_impl(&setup.state, setup.pack, &id, "   ").is_err());
-    send_impl(&setup.state, setup.pack, &id, "E se eu tirar o Create?").unwrap();
+    assert!(send_impl(&setup.state, setup.pack, &id, "   ", None).is_err());
+    send_impl(
+        &setup.state,
+        setup.pack,
+        &id,
+        "E se eu tirar o Create?",
+        None,
+    )
+    .unwrap();
     run_impl(&setup.state, setup.pack, &id, noop())
         .await
         .unwrap();
@@ -788,6 +801,7 @@ async fn ultimo_travamento_crash_report_log_e_mensagem_de_jogador() {
             symptom: AiSymptom::CrashInWorld,
             source: AiSource::LastCrash,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -837,7 +851,7 @@ fn code_of(error: &crate::error::AppError) -> Value {
 }
 
 #[tokio::test]
-async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a_sua() {
+async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_a_escolha_fixa_do_modelo_some() {
     const OPENAI: &str = "sk-proj-chave-de-teste-da-openai-0123456789";
     const ANTHROPIC: &str = "sk-ant-api03-chave-de-teste-da-anthropic-0123";
     let setup = setup(Box::new(|_, _| unreachable!("nada vai à IA"))).await;
@@ -848,11 +862,15 @@ async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a
         .join("ai")
         .join("settings.json");
     fs::create_dir_all(file.parent().unwrap()).unwrap();
-    // O arquivo como a D-04 gravava: só a escolha do Gemini.
-    fs::write(&file, r#"{ "tier": "careful" }"#).unwrap();
+    // O arquivo como a D-04 e a D-15 gravavam, com a escolha fixa do modelo (ADR-0055): continua
+    // abrindo, como Gemini.
+    fs::write(
+        &file,
+        r#"{ "tier": "careful", "tiers": { "openai": "careful" } }"#,
+    )
+    .unwrap();
     let view = settings_view(&setup.state).unwrap();
     assert_eq!(view.provider, AiProvider::Gemini);
-    assert_eq!(view.tier, ModelTier::Careful);
     assert!(view.key_configured);
     let order: Vec<AiProvider> = view.providers.iter().map(|p| p.provider).collect();
     assert_eq!(order, AiProvider::ALL);
@@ -883,32 +901,26 @@ async fn ca_t21_07_configuracao_antiga_vale_como_gemini_e_cada_provedor_guarda_a
             .unwrap();
     }
 
-    // Cada provedor guarda a sua escolha; voltar ao Gemini traz a dele.
+    // Com a chave, a OpenAI em primeiro abre as conversas novas; o Gemini volta para o começo.
     let view = provider_set_impl(&setup.state, AiProvider::Openai).unwrap();
     assert_eq!(
-        (view.provider, view.tier, view.key_configured),
-        (AiProvider::Openai, ModelTier::Economical, true)
+        (view.provider, view.key_configured),
+        (AiProvider::Openai, true)
     );
-    let view = settings_set_impl(&setup.state, ModelTier::Careful).unwrap();
-    assert_eq!(view.tier, ModelTier::Careful);
-    let view = provider_set_impl(&setup.state, AiProvider::Anthropic).unwrap();
-    assert_eq!(view.tier, ModelTier::Economical);
     let view = provider_set_impl(&setup.state, AiProvider::Gemini).unwrap();
-    assert_eq!(view.tier, ModelTier::Careful);
-    assert_eq!(view.providers[1].tier, ModelTier::Careful);
+    assert_eq!(view.provider, AiProvider::Gemini);
     let view = settings_view(&setup.state).unwrap();
     assert!(view.providers.iter().all(|p| p.key_configured));
     let text = fs::read_to_string(&file).unwrap();
     for secret in [KEY, OPENAI, ANTHROPIC] {
         assert!(!text.contains(secret), "{text}");
     }
+    // ADR-0064: a escolha fixa do modelo saiu; o modo é escolhido a cada pergunta.
     let saved: Value = serde_json::from_str(&text).unwrap();
-    assert_eq!(saved["aiProvider"], "gemini");
     assert_eq!(
-        saved["tier"], "careful",
-        "a versão antiga continua lendo o Gemini"
+        saved,
+        json!({ "aiProvider": "gemini", "aiOrder": ["gemini", "openai", "anthropic"] })
     );
-    assert_eq!(saved["tiers"]["openai"], "careful");
 }
 
 #[tokio::test]
@@ -921,6 +933,7 @@ async fn ca_t14_21_conversa_fica_no_provedor_em_que_comecou() {
             symptom: AiSymptom::Other,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -942,7 +955,7 @@ async fn ca_t14_21_conversa_fica_no_provedor_em_que_comecou() {
     let view = get_impl(&setup.state, setup.pack, &id).await.unwrap();
     assert_eq!(view.provider, AiProvider::Gemini);
     assert_eq!(view.model, preview.model);
-    send_impl(&setup.state, setup.pack, &id, "E agora?").unwrap();
+    send_impl(&setup.state, setup.pack, &id, "E agora?", None).unwrap();
     run_impl(&setup.state, setup.pack, &id, noop())
         .await
         .unwrap();
@@ -950,7 +963,7 @@ async fn ca_t14_21_conversa_fica_no_provedor_em_que_comecou() {
 
     // Sem a chave do provedor da conversa: o pedido dessa chave, sem nenhuma requisição.
     setup.state.secrets.remove(SecretKind::Gemini).unwrap();
-    send_impl(&setup.state, setup.pack, &id, "E se eu atualizar?").unwrap();
+    send_impl(&setup.state, setup.pack, &id, "E se eu atualizar?", None).unwrap();
     let before = setup.seen.lock().unwrap().len();
     let error = run_impl(&setup.state, setup.pack, &id, noop())
         .await
@@ -1009,8 +1022,8 @@ async fn gemini_usa_o_flash_e_troca_para_o_flash_lite_quando_a_cota_diaria_acaba
     .mount(&setup.server)
     .await;
 
-    for tier in [ModelTier::Economical, ModelTier::Careful] {
-        settings_set_impl(&setup.state, tier).unwrap();
+    // No Gemini não há escolha (ADR-0064): o modo pedido é ignorado.
+    for mode in [None, Some(SearchMode::Quick), Some(SearchMode::Deep)] {
         let preview = preview_impl(
             &setup.state,
             setup.pack,
@@ -1018,11 +1031,13 @@ async fn gemini_usa_o_flash_e_troca_para_o_flash_lite_quando_a_cota_diaria_acaba
                 symptom: AiSymptom::Other,
                 source: AiSource::PackOnly,
                 note: None,
+                mode,
             },
         )
         .await
         .unwrap();
-        assert_eq!(preview.model, "gemini-9.1-flash", "{tier:?}");
+        assert_eq!(preview.model, "gemini-9.1-flash", "{mode:?}");
+        assert_eq!(preview.mode, None);
     }
     let preview = preview_impl(
         &setup.state,
@@ -1031,6 +1046,7 @@ async fn gemini_usa_o_flash_e_troca_para_o_flash_lite_quando_a_cota_diaria_acaba
             symptom: AiSymptom::Other,
             source: AiSource::PackOnly,
             note: None,
+            mode: None,
         },
     )
     .await
@@ -1063,4 +1079,186 @@ async fn gemini_usa_o_flash_e_troca_para_o_flash_lite_quando_a_cota_diaria_acaba
         .collect();
     assert_eq!(lite.len(), 1);
     assert!(lite[0].contains("gemini-9.1-flash-lite:"), "{lite:?}");
+}
+
+/// Claude simulado para o modo por pergunta: a lista de modelos, a contagem de tokens e a
+/// resposta final direto pela `responder`, anotando o corpo de cada `v1/messages`.
+async fn mount_claude(setup: &Setup) -> Arc<Mutex<Vec<Value>>> {
+    let bodies = Arc::new(Mutex::new(Vec::new()));
+    Mock::given(wiremock::matchers::method("GET"))
+        .and(wiremock::matchers::path_regex(r"/v1/models$"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "data": [
+                { "id": "claude-haiku-9-9", "type": "model" },
+                { "id": "claude-sonnet-9-9", "type": "model" },
+                { "id": "claude-opus-9-9", "type": "model" }
+            ],
+            "has_more": false
+        })))
+        .with_priority(1)
+        .mount(&setup.server)
+        .await;
+    Mock::given(wiremock::matchers::path_regex(
+        r"/v1/messages/count_tokens$",
+    ))
+    .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "input_tokens": 1500 })))
+    .with_priority(1)
+    .mount(&setup.server)
+    .await;
+    let seen = Arc::clone(&bodies);
+    Mock::given(wiremock::matchers::path_regex(r"/v1/messages$"))
+        .respond_with(move |request: &Request| {
+            let body: Value = serde_json::from_slice(&request.body).unwrap();
+            seen.lock().unwrap().push(body);
+            ResponseTemplate::new(200).set_body_json(json!({
+                "id": "msg_1", "type": "message", "role": "assistant", "model": "claude-sonnet-9-9",
+                "content": [
+                    { "type": "thinking", "thinking": "", "signature": "c2ltdWxhZG8=" },
+                    { "type": "tool_use", "id": "toolu_1", "name": "responder", "input": {
+                        "resumo": "Não achei a causa nos dados.", "semConclusao": true,
+                        "achados": [], "propostas": [] } }
+                ],
+                "stop_reason": "tool_use", "stop_sequence": null,
+                "usage": { "input_tokens": 40, "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0, "output_tokens": 40 }
+            }))
+        })
+        .with_priority(1)
+        .mount(&setup.server)
+        .await;
+    bodies
+}
+
+#[tokio::test]
+async fn ca_t14_31_no_claude_cada_pergunta_usa_o_modelo_do_seu_modo() {
+    // ADR-0064: "Procurar rápido" usa o Sonnet e "Procurar a fundo" o Opus da lista da chave; a
+    // pergunta guarda o modo e o modelo, e o Gemini nem é chamado.
+    const ANTHROPIC: &str = "sk-ant-api03-chave-de-teste-da-anthropic-0123";
+    let setup = setup(Box::new(|_, _| unreachable!("nada vai ao Gemini"))).await;
+    setup
+        .state
+        .secrets
+        .set(SecretKind::Anthropic, &SecretString::from(ANTHROPIC))
+        .unwrap();
+    provider_set_impl(&setup.state, AiProvider::Anthropic).unwrap();
+    let bodies = mount_claude(&setup).await;
+
+    let preview = preview_impl(
+        &setup.state,
+        setup.pack,
+        AiPreviewRequest {
+            symptom: AiSymptom::Slow,
+            source: AiSource::PackOnly,
+            note: None,
+            mode: Some(SearchMode::Quick),
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(preview.provider, AiProvider::Anthropic);
+    assert_eq!(preview.model, "claude-sonnet-9-9");
+    assert_eq!(preview.mode, Some(SearchMode::Quick));
+    let id = start_impl(
+        &setup.state,
+        setup.pack,
+        &preview.preview_id,
+        AiPermissions::default(),
+    )
+    .unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+
+    // A pergunta seguinte, a fundo: o modelo é resolvido ao rodar, pela lista da chave.
+    send_impl(
+        &setup.state,
+        setup.pack,
+        &id,
+        "E a fundo?",
+        Some(SearchMode::Deep),
+    )
+    .unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+    // Sem modo pedido, o Claude procura a fundo (o padrão da tela).
+    send_impl(&setup.state, setup.pack, &id, "E agora?", None).unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+
+    let models: Vec<String> = bodies
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|body| body["model"].as_str().unwrap().to_owned())
+        .collect();
+    assert_eq!(
+        models,
+        ["claude-sonnet-9-9", "claude-opus-9-9", "claude-opus-9-9"]
+    );
+    let view = get_impl(&setup.state, setup.pack, &id).await.unwrap();
+    let turns: Vec<(Option<SearchMode>, Option<&str>)> = view
+        .turns
+        .iter()
+        .map(|turn| (turn.mode, turn.model.as_deref()))
+        .collect();
+    assert_eq!(
+        turns,
+        [
+            (Some(SearchMode::Quick), Some("claude-sonnet-9-9")),
+            (Some(SearchMode::Deep), Some("claude-opus-9-9")),
+            (Some(SearchMode::Deep), Some("claude-opus-9-9")),
+        ]
+    );
+    assert_eq!(
+        view.model, "claude-sonnet-9-9",
+        "o modelo da conversa não muda"
+    );
+    assert!(
+        generated(&setup.seen).is_empty(),
+        "nenhum pedido foi ao Gemini"
+    );
+}
+
+#[tokio::test]
+async fn gemini_ignora_o_modo_pedido_na_pergunta() {
+    // ADR-0064: no Gemini não há escolha; a pergunta não guarda modo e sai no Flash.
+    let setup = setup(Box::new(|_, _| no_conclusion())).await;
+    let preview = preview_impl(
+        &setup.state,
+        setup.pack,
+        AiPreviewRequest {
+            symptom: AiSymptom::Other,
+            source: AiSource::PackOnly,
+            note: None,
+            mode: Some(SearchMode::Quick),
+        },
+    )
+    .await
+    .unwrap();
+    let id = start_impl(
+        &setup.state,
+        setup.pack,
+        &preview.preview_id,
+        AiPermissions::default(),
+    )
+    .unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+    send_impl(
+        &setup.state,
+        setup.pack,
+        &id,
+        "E agora?",
+        Some(SearchMode::Deep),
+    )
+    .unwrap();
+    run_impl(&setup.state, setup.pack, &id, noop())
+        .await
+        .unwrap();
+    let view = get_impl(&setup.state, setup.pack, &id).await.unwrap();
+    assert!(view.turns.iter().all(|turn| turn.mode.is_none()));
+    assert_eq!(preview.mode, None);
 }

@@ -1,8 +1,8 @@
 //! Escolha do modelo do Claude pela lista da chave (`GET v1/models`; decisão do dono de
 //! 18/10/2026, ADR-0060).
 //!
-//! Nenhum nome fica no código, só a regra da família: "Mais econômico" é o **Sonnet mais novo**
-//! e "Análise mais cuidadosa" é o **Opus mais novo**; Haiku, Fable e qualquer outra família ficam
+//! Nenhum nome fica no código, só a regra da família: "Procurar rápido" usa o **Sonnet mais novo**
+//! e "Procurar a fundo" usa o **Opus mais novo**; Haiku, Fable e qualquer outra família ficam
 //! de fora. "Mais novo" é pela versão no nome, comparada número a número (`5-5` > `5` > `4-8`);
 //! um id com data (`claude-opus-4-5-20251101`) conta pela versão, e entre o mesmo número com e
 //! sem data vale o sem data (o apelido que a Anthropic mantém atualizado). Sem Sonnet nem Opus,
@@ -12,13 +12,13 @@ use serde_json::Value;
 
 use super::{AnthropicClient, Problem, api_message, classify};
 use crate::error::{Error, Result};
-use crate::providers::{AiProvider, ModelChoices, ModelTier};
+use crate::providers::{AiProvider, ModelChoices, SearchMode};
 
 /// Um modelo da regra: família, versão e a data do id (se tiver).
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Known {
     name: String,
-    tier: ModelTier,
+    mode: SearchMode,
     version: Vec<u32>,
     dated: Option<u32>,
 }
@@ -41,9 +41,9 @@ impl Known {
 fn known(name: &str) -> Option<Known> {
     let rest = name.strip_prefix("claude-")?;
     let (family, version) = rest.split_once('-')?;
-    let tier = match family {
-        "sonnet" => ModelTier::Economical,
-        "opus" => ModelTier::Careful,
+    let mode = match family {
+        "sonnet" => SearchMode::Quick,
+        "opus" => SearchMode::Deep,
         _ => return None,
     };
     let mut parts: Vec<&str> = version.split('-').collect();
@@ -65,16 +65,16 @@ fn known(name: &str) -> Option<Known> {
         .collect::<Option<Vec<u32>>>()?;
     (!version.is_empty()).then(|| Known {
         name: name.to_owned(),
-        tier,
+        mode,
         version,
         dated,
     })
 }
 
-/// O nível de um nome de modelo (`None`: não é um Sonnet nem um Opus).
+/// O modo de um nome de modelo (`None`: não é um Sonnet nem um Opus).
 #[must_use]
-pub fn tier_of(model: &str) -> Option<ModelTier> {
-    known(model).map(|found| found.tier)
+pub fn mode_of(model: &str) -> Option<SearchMode> {
+    known(model).map(|found| found.mode)
 }
 
 /// O Sonnet e o Opus mais novos da lista (`None`: nenhum dos dois).
@@ -83,9 +83,9 @@ pub fn resolve<'a>(ids: impl IntoIterator<Item = &'a str>) -> Option<ModelChoice
     let mut sonnet: Option<Known> = None;
     let mut opus: Option<Known> = None;
     for found in ids.into_iter().filter_map(known) {
-        let slot = match found.tier {
-            ModelTier::Economical => &mut sonnet,
-            ModelTier::Careful => &mut opus,
+        let slot = match found.mode {
+            SearchMode::Quick => &mut sonnet,
+            SearchMode::Deep => &mut opus,
         };
         if slot.as_ref().is_none_or(|best| found.newer_than(best)) {
             *slot = Some(found);
@@ -215,13 +215,10 @@ mod tests {
             "claude-sonnet-latest",
             "claude-opus-5-5-preview",
         ] {
-            assert_eq!(tier_of(name), None, "{name}");
+            assert_eq!(mode_of(name), None, "{name}");
         }
         assert_eq!(resolve(["claude-haiku-5-5", "claude-fable-5-1"]), None);
-        assert_eq!(tier_of("claude-sonnet-5-5"), Some(ModelTier::Economical));
-        assert_eq!(
-            tier_of("claude-opus-4-5-20251101"),
-            Some(ModelTier::Careful)
-        );
+        assert_eq!(mode_of("claude-sonnet-5-5"), Some(SearchMode::Quick));
+        assert_eq!(mode_of("claude-opus-4-5-20251101"), Some(SearchMode::Deep));
     }
 }

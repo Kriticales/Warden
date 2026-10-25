@@ -183,7 +183,6 @@ describe('Sensor Sculk com o assunto vindo de Problemas', () => {
     const { backend, url } = editorBackend({
       handlers: {
         secrets_status: () => ({
-          backend: 'keyring',
           curseforge: false,
           gemini: true,
           github: false,
@@ -199,6 +198,7 @@ describe('Sensor Sculk com o assunto vindo de Problemas', () => {
       symptom: 'slow',
       source: { kind: 'packOnly' },
       note: assunto,
+      mode: null,
     });
   });
 });

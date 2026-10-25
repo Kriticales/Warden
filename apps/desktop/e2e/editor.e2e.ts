@@ -178,7 +178,7 @@ describe('Pack aberto: cabeçalho, Mods, detalhes e informações (P1-08)', () =
       'Mods',
       'Configs',
       'Problemas',
-      'Diagnóstico com IA',
+      'Sensor Sculk',
       'Histórico',
       'Exportar',
     ]);

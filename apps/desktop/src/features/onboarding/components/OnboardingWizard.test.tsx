@@ -173,7 +173,7 @@ describe('primeira execução', () => {
     const user = userEvent.setup();
     renderApp('/');
     await goToKeys(user);
-    const group = screen.getByRole('group', { name: 'Provedor da IA' });
+    const group = screen.getByRole('group', { name: 'Provedor do Sculk' });
     const gemini = within(group).getByRole<HTMLInputElement>('radio', { name: /Gemini/ });
     expect(gemini.checked).toBe(true);
     expect(within(group).getByText('Sugerido')).toBeDefined();

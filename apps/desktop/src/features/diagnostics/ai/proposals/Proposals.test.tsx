@@ -1,10 +1,11 @@
 /**
- * Propostas da IA e consultas externas na conversa (SPEC T14 ✦ passos 2 e 3; ROADMAP D-14), com
+ * Propostas do Sculk e consultas externas na conversa (SPEC T14 passos 2 e 3; ROADMAP D-14), com
  * o backend simulado: os cartões com Aplicar e Descartar (nada é chamado antes do clique), o
  * diálogo com a diferença exata e o token do que foi mostrado (CA-T14-12), os dados do pack
  * relidos depois de Aplicar (lista de Mods, linha do pack, Meus packs), Descartar sem gravar, o
- * pack mudado no meio, a espera enquanto a IA responde, os estados aplicada e descartada, o bloco
- * "Enviado ao GitHub" byte a byte (CA-T14-03) e o número de propostas na lista de Conversas.
+ * pack mudado no meio, a espera enquanto o Sculk responde, os estados aplicada e descartada, o
+ * bloco "Enviado ao GitHub" byte a byte (CA-T14-03) e o selo "Esperando você" na lista de
+ * conversas quando há proposta para decidir.
  */
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -17,6 +18,7 @@ import { makeAppError } from '../../../../test/factories';
 import { renderApp } from '../../../../test/render';
 import { makePlan } from '../../../bisect/bisect.fixtures';
 import { editorBackend } from '../../../pack-editor/testing';
+import { fakeAiHandlers } from '../../../settings/ai/testing';
 import { CONVERSATION_ID, makeSummary, makeTurn, makeView } from '../ai.fixtures';
 
 const BEFORE = '[trains]\nmaxAssemblyLength = 128\n';
@@ -92,14 +94,17 @@ const GITHUB_STEP: ToolStep = {
 };
 
 function setup(proposals: Proposal[], handlers: Record<string, Handler> = {}) {
+  const secrets = {
+    curseforge: false,
+    gemini: true,
+    openai: false,
+    anthropic: false,
+    github: false,
+  } as const;
   return editorBackend({
     handlers: {
-      secrets_status: () => ({
-        backend: 'keyring',
-        curseforge: false,
-        gemini: true,
-        github: false,
-      }),
+      ...fakeAiHandlers(() => secrets).handlers,
+      secrets_status: () => secrets,
       ai_conversations_list: () => [makeSummary({ pendingProposals: 1 })],
       ai_conversation_get: () =>
         makeView({ proposals, turns: [makeTurn({ steps: [GITHUB_STEP] })] }),
@@ -124,7 +129,7 @@ async function openConversation(url: string) {
   renderApp(`${url}/ia/${CONVERSATION_ID}`);
   await screen.findByRole(
     'heading',
-    { level: 1, name: makeSummary().title ?? '' },
+    { level: 2, name: makeSummary().title ?? '' },
     { timeout: 10_000 },
   );
   return screen.findByRole('region', {
@@ -132,7 +137,7 @@ async function openConversation(url: string) {
   });
 }
 
-describe('✦ Propostas da IA (D-14)', () => {
+describe('Propostas do Sculk (D-14)', () => {
   it('CA-T14-12: nada muda até Aplicar; Aplicar mostra a diferença e grava o que foi mostrado; o pack é relido; axe', async () => {
     const { backend, url } = setup([makeProposal()]);
     const card = await openConversation(url);
@@ -244,7 +249,7 @@ describe('✦ Propostas da IA (D-14)', () => {
     });
   });
 
-  it('enquanto a IA responde nesta conversa, os botões esperam', async () => {
+  it('enquanto o Sculk responde nesta conversa, os botões esperam', async () => {
     const { url } = setup([makeProposal()], {
       ai_conversation_get: () =>
         makeView({ proposals: [makeProposal()], live: { kind: 'thinking' } }),
@@ -253,7 +258,9 @@ describe('✦ Propostas da IA (D-14)', () => {
     expect(
       within(card).getByRole<HTMLButtonElement>('button', { name: /^Aplicar a proposta/ }).disabled,
     ).toBe(true);
-    expect(within(card).getByText('Espere a IA terminar de responder para decidir.')).toBeDefined();
+    expect(
+      within(card).getByText('Espere o Sculk terminar de responder para decidir.'),
+    ).toBeDefined();
   });
 
   it('aplicada e descartada mostram o estado, sem os botões de decisão', async () => {
@@ -315,25 +322,36 @@ describe('✦ Propostas da IA (D-14)', () => {
     const block = screen.getByTestId('enviado-github');
     expect(
       within(block).getByText(
-        'Enviado ao GitHub: busca de issues em Layers-of-Railways/Railway com “NoSuchMethodError tickBogeys”',
+        /^Enviado ao GitHub: busca de issues em Layers-of-Railways\/Railway com “NoSuchMethodError tickBogeys”/,
       ),
     ).toBeDefined();
     expect(within(block).getByLabelText('Pedido enviado ao GitHub').textContent).toBe(
       GITHUB_STEP.external?.request,
     );
-    // O bloco da consulta para a IA continua logo abaixo, com o título da D-14.
+    // O bloco da consulta para o Sculk continua logo abaixo, com o título da D-14.
     expect(
-      screen.getByText(
-        /Enviado à IA: busca de issues de railways com “NoSuchMethodError tickBogeys”/,
-      ),
-    ).toBeDefined();
+      screen.getByText(/busca de issues de railways com “NoSuchMethodError tickBogeys”/, {
+        selector: '.tc__title',
+      }).parentElement?.textContent,
+    ).toContain('Enviado ao Sculk: busca de issues de railways');
   });
 
-  it('a lista de Conversas mostra as propostas esperando você', async () => {
+  it('a lista de conversas mostra o selo "Esperando você" enquanto há proposta para decidir', async () => {
     const { url } = setup([makeProposal()]);
     renderApp(`${url}/ia`);
-    expect(
-      await screen.findByText('1 proposta esperando você', {}, { timeout: 10_000 }),
-    ).toBeDefined();
+    const aside = await screen.findByRole(
+      'complementary',
+      { name: 'Conversas' },
+      { timeout: 10_000 },
+    );
+    const row = await within(aside).findByRole('link', { name: /^O mixin do Rails/ });
+    expect(within(row).getByText('Esperando você')).toBeDefined();
+    expect(within(row).queryByText('Respondida')).toBeNull();
+  });
+
+  it('o título das propostas da resposta conta quantas são', async () => {
+    const { url } = setup([makeProposal(), BISECT]);
+    await openConversation(url);
+    expect(screen.getByText('2 propostas')).toBeDefined();
   });
 });

@@ -67,6 +67,7 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0061](0061-loader-estrito-ao-adicionar-atualizar-e-trocar-versao.md) | Loader estrito ao adicionar, atualizar e trocar versão: o mod tem de ser para o Minecraft e o loader do pack; Forge só no NeoForge 1.20.1 (complementa a 0006) | dono |
 | [0062](0062-emenda-do-portablemc-java-sem-janela.md) | Emenda do portablemc: Java sem janela no Windows (complementa a 0057 e a 0049) | técnica |
 | [0063](0063-o-warden-se-comporta-como-app.md) | O Warden se comporta como app, não como página: atalhos de navegador, menu de contexto, seleção e arrastar | técnica |
+| [0064](0064-sensor-sculk-e-modo-por-pergunta.md) | Sensor Sculk: o nome (a IA se chama Sculk), a tela nova, "Procurar rápido" / "Procurar a fundo" a cada pergunta no lugar da escolha do modelo em Configurações (substitui em parte a 0055) e as medidas de desempenho para a IA | dono |
 | [0069](0069-chaves-so-no-cofre-do-sistema.md) | Chaves só no cofre do sistema; sai o modo `.env`, com a migração das chaves ao abrir o app (substitui a 0025) | dono |
 | [0070](0070-ordem-de-preferencia-dos-provedores.md) | Ordem de preferência dos provedores do Sculk (o 1º com chave funcionando abre as conversas novas) e Configurações com menu lateral (complementa a 0060) | dono |
 

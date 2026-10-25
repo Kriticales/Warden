@@ -6,9 +6,10 @@
 //!   [`openai`] (D-16) e [`anthropic`] (D-17).
 //! - [`connect`]: o cliente do provedor com a chave do usuário, sobre um [`HttpClient`] feito
 //!   com [`http_config`].
-//! - [`ModelTier`] e [`ModelChoices`]: "Mais econômico" e "Análise mais cuidadosa", escolhidos
-//!   por cada provedor pela lista de modelos da conta (nenhum nome fixo no código, ADR-0055), e
-//!   o modelo mais leve para quando a cota diária do escolhido acaba (só o Gemini tem, ADR-0060).
+//! - [`SearchMode`] e [`ModelChoices`]: "Procurar rápido" e "Procurar a fundo", escolhidos a
+//!   cada pergunta (ADR-0064), com os modelos de cada provedor tirados da lista de modelos da
+//!   conta (nenhum nome fixo no código, ADR-0055), e o modelo mais leve para quando a cota
+//!   diária do escolhido acaba (só o Gemini tem, ADR-0060).
 
 pub mod anthropic;
 pub mod chat;
@@ -86,39 +87,50 @@ impl AiProvider {
         matches!(self, Self::Gemini)
     }
 
-    /// O nível de um nome de modelo deste provedor (`None`: não é um dos que o Warden escolhe).
+    /// O modo de um nome de modelo deste provedor (`None`: não é um dos que o Warden escolhe).
     #[must_use]
-    pub fn tier_of(self, model: &str) -> Option<ModelTier> {
+    pub fn mode_of(self, model: &str) -> Option<SearchMode> {
         match self {
-            Self::Gemini => gemini::models::tier_of(model),
-            Self::Openai => openai::models::tier_of(model),
-            Self::Anthropic => anthropic::models::tier_of(model),
+            Self::Gemini => gemini::models::mode_of(model),
+            Self::Openai => openai::models::mode_of(model),
+            Self::Anthropic => anthropic::models::mode_of(model),
         }
     }
 }
 
-/// A escolha em Configurações, por provedor.
+/// Como o Sculk procura numa pergunta (ADR-0064): escolhido a cada pergunta no Claude e na
+/// OpenAI; no Gemini não há escolha (os dois usam o Flash estável mais novo, com a troca para o
+/// Flash-Lite no limite diário, ADR-0060).
 #[derive(
     Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum ModelTier {
-    /// Padrão: o modelo estável mais econômico do provedor. No Gemini, os dois níveis usam o
-    /// modelo mais forte do plano gratuito, o Flash mais novo (decisão do dono, ADR-0060).
+pub enum SearchMode {
+    /// "Procurar rápido": o modelo estável mais econômico do provedor e menos consultas.
     #[default]
-    Economical,
-    /// "Análise mais cuidadosa": o modelo estável mais capaz da faixa barata (no Gemini, o
-    /// Flash mais novo, com poucas conversas por dia no plano gratuito).
-    Careful,
+    Quick,
+    /// "Procurar a fundo": o modelo estável mais forte da faixa barata e mais consultas.
+    Deep,
+}
+
+impl SearchMode {
+    /// Rodadas de consulta por pergunta neste modo (ARCHITECTURE §9.5 "Laço": 8 a fundo).
+    #[must_use]
+    pub const fn max_rounds(self) -> u32 {
+        match self {
+            Self::Quick => 4,
+            Self::Deep => 8,
+        }
+    }
 }
 
 /// Os modelos resolvidos para uma chave.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelChoices {
-    /// O modelo do nível "Mais econômico" (`None`: nenhum disponível).
+    /// O modelo de "Procurar rápido" (`None`: nenhum disponível).
     pub economical: Option<String>,
-    /// O modelo do nível "Análise mais cuidadosa".
+    /// O modelo de "Procurar a fundo".
     pub careful: Option<String>,
     /// O modelo mais leve, que o laço usa sozinho numa pergunta quando a cota diária do modelo
     /// da conversa acaba (`None`: o provedor não troca; no Gemini, o Flash-Lite mais novo).
@@ -128,17 +140,17 @@ pub struct ModelChoices {
 }
 
 impl ModelChoices {
-    /// O modelo do nível escolhido; sem ele, o do outro nível (melhor que nenhum).
+    /// O modelo do modo escolhido; sem ele, o do outro modo (melhor que nenhum).
     #[must_use]
-    pub fn pick(&self, tier: ModelTier) -> Option<(&str, ModelTier)> {
-        let (first, second) = match tier {
-            ModelTier::Economical => (
-                (self.economical.as_deref(), ModelTier::Economical),
-                (self.careful.as_deref(), ModelTier::Careful),
+    pub fn pick(&self, mode: SearchMode) -> Option<(&str, SearchMode)> {
+        let (first, second) = match mode {
+            SearchMode::Quick => (
+                (self.economical.as_deref(), SearchMode::Quick),
+                (self.careful.as_deref(), SearchMode::Deep),
             ),
-            ModelTier::Careful => (
-                (self.careful.as_deref(), ModelTier::Careful),
-                (self.economical.as_deref(), ModelTier::Economical),
+            SearchMode::Deep => (
+                (self.careful.as_deref(), SearchMode::Deep),
+                (self.economical.as_deref(), SearchMode::Quick),
             ),
         };
         first
@@ -280,21 +292,28 @@ mod tests {
     }
 
     #[test]
-    fn nivel_pelo_provedor() {
+    fn modo_estavel_e_limita_as_consultas() {
+        assert_eq!(serde_json::to_value(SearchMode::Deep).unwrap(), "deep");
+        assert_eq!(serde_json::to_value(SearchMode::Quick).unwrap(), "quick");
+        assert!(SearchMode::Quick.max_rounds() < SearchMode::Deep.max_rounds());
+    }
+
+    #[test]
+    fn modo_pelo_provedor() {
         assert_eq!(
-            AiProvider::Gemini.tier_of("gemini-3.5-flash-lite"),
-            Some(ModelTier::Economical)
+            AiProvider::Gemini.mode_of("gemini-3.5-flash-lite"),
+            Some(SearchMode::Quick)
         );
-        assert_eq!(AiProvider::Openai.tier_of("gemini-3.5-flash-lite"), None);
+        assert_eq!(AiProvider::Openai.mode_of("gemini-3.5-flash-lite"), None);
         assert_eq!(
-            AiProvider::Openai.tier_of("gpt-6-sol"),
-            Some(ModelTier::Careful)
+            AiProvider::Openai.mode_of("gpt-6-sol"),
+            Some(SearchMode::Deep)
         );
         assert_eq!(
-            AiProvider::Anthropic.tier_of("claude-sonnet-5-5"),
-            Some(ModelTier::Economical)
+            AiProvider::Anthropic.mode_of("claude-sonnet-5-5"),
+            Some(SearchMode::Quick)
         );
-        assert_eq!(AiProvider::Anthropic.tier_of("gpt-6-sol"), None);
+        assert_eq!(AiProvider::Anthropic.mode_of("gpt-6-sol"), None);
     }
 
     #[test]
@@ -305,10 +324,10 @@ mod tests {
             lighter: None,
         };
         assert_eq!(
-            only_flash.pick(ModelTier::Economical),
-            Some(("gemini-3.8-flash", ModelTier::Careful))
+            only_flash.pick(SearchMode::Quick),
+            Some(("gemini-3.8-flash", SearchMode::Deep))
         );
-        assert_eq!(ModelChoices::default().pick(ModelTier::Careful), None);
+        assert_eq!(ModelChoices::default().pick(SearchMode::Deep), None);
     }
 
     #[test]

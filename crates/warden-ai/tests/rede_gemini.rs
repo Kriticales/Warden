@@ -24,7 +24,7 @@ use warden_ai::conversation::{AnswerVia, FallbackReason};
 use warden_ai::engine::{Engine, Limits, NoObserver};
 use warden_ai::providers::gemini::GeminiClient;
 use warden_ai::providers::gemini::models::fetch_choices;
-use warden_ai::providers::{ModelTier, http_config};
+use warden_ai::providers::{SearchMode, http_config};
 use warden_ai::schema::answer_schema;
 use warden_ai::tools::{AiPermissions, ToolRegistry};
 use warden_ai::{AiErrorCode, Error};
@@ -44,8 +44,8 @@ async fn rede_d04_conversa_completa_com_o_modelo_padrao() {
     let http = HttpClient::new(http_config(HttpConfig::for_version("0.0.0"))).unwrap();
     let client = GeminiClient::new(http, SecretString::from(key)).unwrap();
     let choices = fetch_choices(&client).await.unwrap();
-    let (model, tier) = choices.pick(ModelTier::Economical).expect("nenhum modelo");
-    eprintln!("rede_d04: modelo {model} ({tier:?})");
+    let (model, mode) = choices.pick(SearchMode::Quick).expect("nenhum modelo");
+    eprintln!("rede_d04: modelo {model} ({mode:?})");
 
     let registry = ToolRegistry::new();
     let source = ValeSombrio::default();

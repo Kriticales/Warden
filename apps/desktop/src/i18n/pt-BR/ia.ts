@@ -1,14 +1,14 @@
 /**
- * Textos do ✦ Diagnóstico com IA (SPEC T14 ✦; ROADMAP D-04; protótipo
- * `design/prototipo-final/screens-diag.js`). Termos do glossário (QUALITY §8.2): "conversa",
- * "Enviado à IA", "proposta", "travamento", "teste", "chave", "config", "pack". Os textos fixos
- * da SPEC estão iguais aos dela ("Cada coisa que a IA consultar…", "A IA pode errar…",
- * "Aguardando o limite por minuto do plano gratuito…", "O limite diário…" fica na frase do erro).
+ * Textos do Sensor Sculk, a seção de IA do pack (SPEC T14; ROADMAP D-04; protótipo aprovado
+ * `design/bug-01/sensor-sculk.html`, versão 2; ADR-0064). Dentro do app a IA se chama **Sculk**.
+ * Termos do glossário (QUALITY §8.2): "Sensor Sculk", "Sculk", "conversa", "Enviado ao Sculk",
+ * "proposta", "travamento", "teste", "chave", "config", "pack". Os textos fixos da SPEC estão
+ * iguais aos dela ("Cada coisa que o Sculk consultar…", "O Sculk pode errar…", "Aguardando o
+ * limite por minuto do plano gratuito…").
  */
 export const ia = {
   secao: {
-    titulo: 'Diagnóstico com IA',
-    sub: 'Converse com a IA ({{provedor}}) sobre um problema do pack. Ela consulta o pack, os logs e os testes; você vê tudo o que é enviado, e nada muda no pack sem a sua decisão.',
+    titulo: 'Sensor Sculk',
     carregando: 'Lendo as conversas…',
   },
   provedores: {
@@ -36,31 +36,87 @@ export const ia = {
       anthropic: 'Falta a chave do Claude',
     },
     texto:
-      'Para usar a IA, salve a chave do provedor escolhido em Configurações → Chaves e contas. A chave é sua: o uso é cobrado ou limitado nela, conforme o plano.',
+      'Para conversar com o Sculk, salve a chave do provedor escolhido em Configurações → Chaves e contas. A chave é sua: o uso é cobrado ou limitado nela, conforme o plano.',
     provedores:
-      'O Warden funciona com o Gemini (Google), a OpenAI e o Claude (Anthropic). Para começar, o sugerido é o Gemini, que tem plano gratuito.',
+      'O Sculk funciona com o Gemini (Google), a OpenAI e o Claude (Anthropic). Para começar, o sugerido é o Gemini, que tem plano gratuito.',
     abrir: 'Abrir Configurações',
+  },
+  lista: {
+    titulo: 'Conversas',
+    nova: 'Nova conversa',
+    busca: 'Buscar nas conversas',
+    limpar: 'Limpar busca',
+    carregando: 'Lendo as conversas…',
+    vazio: 'Nenhuma conversa com o Sculk neste pack.',
+    vazioDica:
+      'Comece uma em Nova conversa. Antes de enviar qualquer coisa, você vê o que o Sculk poderá consultar.',
+    semResultado: 'Nenhuma conversa com “{{busca}}”.',
+    grupos: {
+      hoje: 'Hoje',
+      ontem: 'Ontem',
+      semana: 'Esta semana',
+      antes: 'Antes',
+    },
+    rotulo: '{{titulo}}, {{origem}}, {{estado}}',
+    rodape: {
+      provedor: 'Provedor das conversas novas:',
+      keyring: 'chave salva no cofre do Windows.',
+      semChave: 'sem chave salva.',
+      mudar: 'Mudar em Configurações',
+    },
+    onde: 'As conversas ficam nos dados do Warden, neste computador. Nunca vão para a pasta do pack nem para o GitHub.',
+  },
+  estado: {
+    lendo: 'Lendo',
+    respondida: 'Respondida',
+    esperando: 'Esperando você',
+    aplicada: 'Aplicada',
+    erro: 'Parou com erro',
+    interrompida: 'Sem resposta',
+  },
+  modo: {
+    grupo: 'Como o Sculk procura',
+    rotulo: 'Como procurar',
+    quick: 'Procurar rápido',
+    deep: 'Procurar a fundo',
+    dica: {
+      quick: 'Mais rápido e mais barato: modelo mais econômico e menos consultas.',
+      deep: 'Modelo mais forte e mais consultas. Demora mais e custa mais na sua chave.',
+    },
+    hint: {
+      quick: 'Modelo mais econômico e menos consultas. Bom para dúvidas simples.',
+      deep: 'Modelo mais forte e mais consultas. Demora mais e custa mais na sua chave.',
+    },
+    selecionado: '{{modo}} selecionado.',
+    provedor: 'Provedor: {{provedor}}. Modelo: {{modelo}}.',
+    provedorSemModelo: 'Provedor: {{provedor}}.',
+    consultando: 'Consultando os modelos da sua chave…',
+    gemini:
+      'No Gemini o Sculk usa sempre o mesmo modelo; se o limite diário acabar, troca sozinho para um mais leve e avisa.',
   },
   nova: {
     titulo: 'Nova conversa',
+    sub: 'O Sculk lê o travamento, o pack e os testes e explica o que aconteceu. Tudo o que ele consultar aparece na conversa.',
     sintoma: 'O que está acontecendo?',
+    sintomaDica: 'Escolha uma opção para começar.',
     fonte: {
       rotulo: 'Começar pelo',
       ultimo: 'Último travamento: {{quando}}',
       sessao: 'Teste de {{quando}} ({{resultado}})',
       arquivo: 'Um log ou crash report do computador…',
       arquivoEscolhido: 'Arquivo do computador: {{arquivo}}',
-      arquivoDica:
-        '{{tamanho}}. Antes de ir para a IA, o texto passa pela mesma limpeza de dados pessoais dos testes.',
+      arquivoDica: '{{tamanho}}.',
       pack: 'Só o pack, sem log',
+      dica: 'O texto passa pela limpeza de dados pessoais antes de ir para o Sculk.',
     },
-    nota: 'Contar algo à IA',
+    nota: 'Conte o que aconteceu',
     opcional: '(opcional)',
     notaExemplo: 'Ex.: trava quando entro no Nether',
     comecar: 'Começar conversa',
+    comecarDica: 'Escolha o que está acontecendo para começar.',
     preparando: 'Preparando o texto…',
     antes:
-      'Antes, você vê o que a IA poderá consultar e confirma. Isso é pedido uma vez por conversa.',
+      'Antes, você vê o que o Sculk poderá consultar e confirma. Isso é pedido uma vez por conversa.',
     erro: 'Não foi possível preparar a conversa.',
   },
   sintoma: {
@@ -70,35 +126,28 @@ export const ia = {
       desc: 'Abre, mas fecha ao carregar ou jogar.',
     },
     slow: { titulo: 'Está lento', desc: 'Quadros por segundo baixos ou travadinhas.' },
-    other: { titulo: 'Outra coisa', desc: 'Conte no campo "Contar algo à IA".' },
+    other: { titulo: 'Outra coisa', desc: 'Conte no campo abaixo o que está acontecendo.' },
   },
   resultado: {
     crashed: 'travou',
     closedNormally: 'fechou normalmente',
     stoppedByUser: 'parado por você',
   },
-  modelo: {
-    atual: 'Provedor: {{provedor}}. Modelo: {{modelo}} ({{nivel}}).',
-    atualGemini: 'Provedor: Gemini. Modelo: {{modelo}}.',
-    consultando: 'Consultando os modelos da sua chave…',
-    nenhum: 'Nenhum modelo do provedor disponível para a sua chave.',
-    trocar: 'Mudar em Configurações',
-  },
-  nivel: {
-    economical: 'mais econômico',
-    careful: 'análise mais cuidadosa',
-  },
   consentimento: {
-    titulo: 'Começar uma conversa com a IA?',
-    sub: 'Pedido uma vez para esta conversa. Cada coisa que a IA consultar aparece na conversa, exatamente como foi enviada. Nada muda no pack sem você clicar em Aplicar.',
-    podeConsultar: 'Durante esta conversa, a IA pode consultar',
+    titulo: 'Começar uma conversa com o Sculk?',
+    sub: 'Pedido uma vez para esta conversa. Confira o que o Sculk poderá consultar e o texto que vai primeiro.',
+    podeConsultar: 'O que o Sculk poderá consultar',
+    sempre: 'Sempre',
     pack: 'Informações do pack e a lista de mods',
     packDesc: 'Versões do Minecraft, do loader e do Java; nome, versão e lado de cada mod.',
     achados: 'Os problemas que o Warden já encontrou',
     achadosDesc: 'Os achados de Problemas, com as evidências.',
     logs: 'Logs e crash reports dos seus testes',
     logsDesc:
-      'Sempre sem dados pessoais: nome de usuário do Windows nos caminhos, nome do jogador, UUID, IPs, e-mails, nome do computador e qualquer coisa com cara de chave viram marcadores.',
+      'Sem dados pessoais: nome de usuário do Windows nos caminhos, nome do jogador, UUID, IPs, e-mails, nome do computador e qualquer coisa com cara de chave viram marcadores.',
+    desempenho: 'Medidas de desempenho dos testes',
+    desempenhoDesc:
+      'Tempo para abrir e para entrar no mundo, pico de memória, o perfil de desempenho quando houver e a comparação entre versões. O computador aparece só como um código.',
     configs: 'Configs do pack',
     configsDesc: 'Arquivos de config/, defaultconfigs/ e kubejs/. Desmarque se não quiser.',
     github: 'Procurar problemas parecidos nas páginas dos mods no GitHub',
@@ -108,9 +157,9 @@ export const ia = {
     para: 'Para',
     paraValor: '{{provedor}} ({{modelo}}), com a sua chave',
     tamanho: 'Tamanho inicial',
-    tamanhoValor:
-      '{{bytes}} de texto; cerca de {{tokens}} com as instruções do Warden (token é a unidade que os provedores de IA usam para medir e cobrar)',
+    tamanhoValor: '{{bytes}} de texto; cerca de {{tokens}} com as instruções do Warden',
     tamanhoSoBytes: '{{bytes}} de texto',
+    token: 'Token é a unidade que os provedores de IA usam para medir e cobrar.',
     custo: 'Custo',
     /** O custo do Gemini pelo modelo (ADR-0055: o Flash-Lite, `leve`; o Flash, `forte`). */
     custoValor: {
@@ -127,37 +176,21 @@ export const ia = {
       'O uso é cobrado ou limitado na sua chave. No plano gratuito não há custo, mas o Google pode usar o conteúdo enviado para melhorar os produtos dele, e pessoas podem lê-lo.',
     poucasPorDia:
       'No plano gratuito, este modelo permite poucas conversas por dia. Se o limite diário acabar no meio de uma pergunta, o Warden troca sozinho para um modelo mais leve e avisa.',
+    aviso:
+      'Cada coisa que o Sculk consultar aparece na conversa. Nada muda no pack sem você clicar em Aplicar.',
+    copiar: 'Copiar',
     cancelar: 'Cancelar',
-    comecar: 'Começar conversa',
+    comecar: 'Enviar e começar',
     erro: 'A conversa não começou.',
-  },
-  conversas: {
-    titulo: 'Conversas',
-    carregando: 'Lendo as conversas…',
-    vazio: 'Nenhuma conversa com a IA neste pack.',
-    colunas: {
-      conversa: 'Conversa',
-      quando: 'Quando',
-      situacao: 'Situação',
-      acoes: 'Ações',
-    },
-    situacao: {
-      running: 'A IA está respondendo',
-      answered: 'Respondida',
-      failed: 'Parou com erro',
-      interrupted: 'Sem resposta',
-    },
-    continuar: 'Continuar',
-    continuarRotulo: 'Continuar a conversa "{{titulo}}"',
-    apagarRotulo: 'Apagar a conversa "{{titulo}}"',
-    onde: 'As conversas ficam nos dados do Warden, neste computador. Nunca vão para a pasta do pack nem para o GitHub.',
   },
   apagar: {
     titulo: 'Apagar esta conversa?',
     texto:
-      'A conversa e tudo o que foi enviado nela saem deste computador. O que já foi enviado à IA não volta.',
+      'Ela sai da lista e o arquivo dela é apagado dos dados do Warden. O pack não muda. O que já foi enviado ao Sculk não volta.',
     confirmar: 'Apagar conversa',
     apagando: 'Apagando…',
+    cancelar: 'Cancelar',
+    apagada: 'Conversa apagada.',
   },
   origem: {
     travamento: 'Travamento de {{sessao}}',
@@ -166,26 +199,45 @@ export const ia = {
     sessaoCurta: '{{dia}} às {{hora}}',
     arquivoCurto: 'arquivo escolhido',
     link: 'Link do {{site}}',
+    sobre: {
+      travamento: 'o travamento de {{sessao}}',
+      teste: 'o teste de {{sessao}}',
+      soPack: 'o pack, sem log',
+      arquivo: 'o arquivo {{arquivo}}',
+      link: 'o log do link do {{site}}',
+    },
   },
   conversa: {
-    voltar: 'Conversas',
     carregando: 'Lendo a conversa…',
     naoAchou: 'Conversa não encontrada',
-    sub: 'Conversa sobre {{origem}} · começou {{quando}} com {{provedor}}',
-    textoInicial: 'texto inicial',
+    meta: '{{provedor}} · começou {{quando}}',
+    inicio: 'Conversa sobre {{origem}}',
+    textoInicial: 'Texto inicial',
     voce: 'Você',
-    ia: 'IA',
+    sculk: 'Sculk',
     suaMensagem: 'Sua mensagem',
-    mensagemIa: 'Mensagem da IA',
+    mensagemSculk: 'Resposta do Sculk',
+    exato: 'Exatamente o que foi enviado ao Sculk · {{bytes}}',
+    copiar: 'Copiar',
+    copiado: 'Copiado.',
+    copiarFalhou: 'Selecione o texto e use Ctrl+C.',
+    lendo: 'Sculk lendo…',
+    segundos: '{{segundos}} s',
+    lendoAnuncio: 'O Sculk está lendo.',
+    recebida: 'Resposta do Sculk recebida.',
   },
-  enviado: {
-    titulo: 'Enviado à IA: {{oQue}}',
-    pediu: 'O que a IA pediu',
-    pediuRotulo: 'Consulta pedida pela IA',
-    exato: 'Exatamente o que foi enviado',
-    exatoRotulo: 'Bytes enviados à IA',
+  consultas: {
+    titulo_one: 'O Sculk consultou {{count}} coisa',
+    titulo_other: 'O Sculk consultou {{count}} coisas',
+    enviados: '{{tamanho}} enviados',
+    pre: 'Enviado ao Sculk:',
+    pedido: 'Pedido do Sculk',
+    oQue: 'O que foi enviado · {{tamanho}}',
     negada: 'não permitido nesta conversa',
     falhou: 'sem dados',
+  },
+  enviado: {
+    titulo: 'Enviado ao Sculk: {{oQue}}',
     visaoGeral: 'visão geral do pack',
     lista: 'lista de mods',
     listaFiltrada: 'lista de mods com "{{filtro}}"',
@@ -204,10 +256,11 @@ export const ia = {
     diferenca: 'o que mudou da versão {{de}} para {{para}}',
     dependentes: 'quem depende do mod {{mod}}',
     porQue: 'por que o mod {{mod}} está no pack',
+    desempenho: 'medidas de desempenho dos testes',
+    perfilDesempenho: 'perfil de desempenho do teste de {{sessao}}',
     outra: 'consulta {{nome}}',
   },
   espera: {
-    lendo: 'A IA está lendo. Costuma levar de 10 a 40 segundos; você pode sair desta tela.',
     porMinuto:
       'Aguardando o limite por minuto do plano gratuito… A conversa continua sozinha em cerca de {{segundos}} s.',
     porMinutoPago:
@@ -220,11 +273,11 @@ export const ia = {
       anthropic:
         'A Anthropic está sobrecarregada agora. Tentando de novo sozinho ({{tentativa}} de {{total}})…',
     },
+    sair: 'Você pode sair desta tela; a conversa continua.',
   },
   troca: {
     quota: 'O limite diário do modelo mais forte acabou; esta resposta usou o mais leve.',
     timeout: 'O modelo mais forte demorou demais para responder; esta resposta usou o mais leve.',
-    modelo: 'Modelo desta resposta: {{modelo}}.',
   },
   faltaChave: {
     texto:
@@ -237,34 +290,30 @@ export const ia = {
   },
   interrompida: {
     titulo: 'A resposta desta pergunta não chegou.',
-    texto: 'O Warden fechou antes de a IA responder. Nada foi alterado no pack.',
+    texto: 'O Warden fechou antes de o Sculk responder. Nada foi alterado no pack.',
   },
   resposta: {
-    titulo: 'Resposta',
-    afirmacoes: 'O que a IA afirma',
-    limite: 'A IA chegou ao limite de consultas desta pergunta e respondeu com o que já tinha.',
-    semConclusao: 'A IA não encontrou a causa com o que consultou.',
+    limite: 'O Sculk chegou ao limite de consultas desta pergunta e respondeu com o que já tinha.',
+    semConclusao: 'O Sculk não encontrou a causa com o que consultou.',
     semConclusaoTexto:
       'Isso é uma resposta válida. A busca do culpado testa o pack por partes até achar o mod que causa o problema.',
     culpado: 'Encontrar o mod culpado',
     semConclusaoSemPack:
-      'Isso é uma resposta válida. Conte mais à IA ou analise o log dentro do pack, onde ela também vê os mods e os testes.',
+      'Isso é uma resposta válida. Conte mais ao Sculk ou analise o log dentro do pack, onde ele também vê os mods e os testes.',
     mods: 'Mods envolvidos',
-    podeErrar: 'A IA pode errar. Confira antes de mudar o pack.',
-    podeErrarTexto:
-      'Cada selo diz de onde veio o trecho citado, não que a conclusão está certa. Afirmações sem evidência conferida aparecem riscadas, como "não verificado".',
+    podeErrar: 'O Sculk pode errar. Confira antes de mudar o pack.',
   },
   selo: {
-    dica: 'Este trecho existe em {{onde}}. Confira se ele sustenta a frase.',
+    dica: 'Este trecho existe no que foi enviado ao Sculk ({{onde}}). Confira se ele sustenta a frase.',
     dicaJogador:
       'Este trecho é uma mensagem de chat de um jogador ({{onde}}). Existe no log, mas não prova nada sozinho.',
+    dicaNaoVerificado: 'O Warden não achou um trecho que sustente esta frase.',
     conferidoRotulo: 'Evidência conferida:',
     jogadorRotulo: 'Mensagem de jogador:',
     naoVerificado: 'não verificado',
-    idDesconhecido: 'não verificado: trecho que a IA não recebeu',
+    idDesconhecido: 'não verificado: trecho que o Sculk não recebeu',
     jogador: 'baseado em mensagem de jogador',
-    trechoDe: 'Trecho de {{onde}}',
-    modsInexistentes: 'Citados pela IA, mas não estão no pack: {{mods}}.',
+    modsInexistentes: 'Citados pelo Sculk, mas não estão no pack: {{mods}}.',
     log: 'log, linha {{linha}}',
     logSemLinha: 'log',
     crash: 'crash report, linha {{linha}}',
@@ -277,16 +326,18 @@ export const ia = {
     versao: 'histórico: {{versao}}',
     grafo: 'dependências de {{mod}}',
     visaoGeral: 'visão geral do pack',
+    desempenho: 'desempenho do teste de {{sessao}}',
+    comparacao: 'desempenho entre versões',
+    perfilDesempenho: 'perfil de desempenho de {{sessao}}',
   },
   confianca: {
-    titulo: 'Confiança',
-    low: 'Confiança baixa',
-    medium: 'Confiança média',
-    high: 'Confiança alta',
-    como: 'Calculada pelo Warden a partir das evidências conferidas, não pelo que a IA diz.',
+    rotulo: 'Confiança: {{nivel}}',
+    low: 'baixa',
+    medium: 'média',
+    high: 'alta',
+    como: 'Calculada pelo Warden a partir das evidências conferidas, não pelo que o Sculk diz de si.',
   },
   proposta: {
-    titulo: 'Propostas',
     porque: 'Por quê:',
     manual:
       'Para fazer esta mudança, use as telas de sempre do Warden (Mods, Configs ou Ajustes do teste).',
@@ -302,7 +353,7 @@ export const ia = {
     },
   },
   mudou: {
-    titulo: 'O pack mudou desde esta conversa.',
+    titulo: 'O pack mudou desde o começo da conversa.',
     itens: '{{mudancas}} depois de {{quando}}. As respostas podem não valer mais.',
     outros:
       'As configs ou as informações do pack mudaram depois de {{quando}}. As respostas podem não valer mais.',
@@ -313,64 +364,90 @@ export const ia = {
     removidos_one: '{{count}} removido',
     removidos_other: '{{count}} removidos',
     nova: 'Começar nova conversa',
-    continuar: 'Continuar mesmo assim',
   },
-  perguntar: {
-    rotulo: 'Perguntar mais à IA',
-    exemplo: 'Ex.: e se eu voltar o Create para a versão anterior?',
-    dica: 'A pergunta vai como você escrever, sem passar pela limpeza do log.',
-    depoisDoErro: 'Para perguntar outra coisa, a pergunta anterior precisa de uma resposta.',
+  composer: {
+    rotulo: 'Pergunte mais ao Sculk',
+    exemplo: 'Pergunte mais ou conte o que aconteceu',
     enviar: 'Enviar',
+    dicaVazio: 'Escreva uma pergunta para enviar.',
+    dicaLendo: 'Espere o Sculk terminar de ler.',
+    depoisDoErro: 'Para perguntar outra coisa, a pergunta anterior precisa de uma resposta.',
   },
-  lado: {
-    rotulo: 'Sobre esta conversa',
-    comecou: 'Começou',
+  detalhes: {
+    botao: 'Detalhes',
+    botaoAvisos_one: 'Detalhes, {{count}} aviso',
+    botaoAvisos_other: 'Detalhes, {{count}} avisos',
+    titulo: 'Detalhes',
+    fechar: 'Fechar Detalhes',
+    fecharDica: 'Fechar (Esc)',
+    servico: 'Serviço e uso',
     provedor: 'Provedor',
     modelo: 'Modelo',
-    tamanho: 'Esta conversa',
-    inicial: 'Pedido inicial',
-    inicialValor: '{{tokens}}, contados pelo provedor',
-    requisicoes: 'Requisições',
-    podeLer: 'A IA pode ler',
+    modeloLeve_one: '{{count}} resposta usou o {{modelo}}',
+    modeloLeve_other: '{{count}} respostas usaram o {{modelo}}',
+    modo: 'Modo',
+    modoGemini: 'Não se aplica ao Gemini',
+    modoMisto: '{{rapido}} rápido, {{fundo}} a fundo',
+    modoAntigo: 'Escolhido em Configurações, antes do modo por pergunta',
+    tokens: 'Tokens',
+    tokensSub: 'Contados pelo provedor.',
+    pedidos: 'Pedidos',
+    comecou: 'Começou',
+    podeLer: 'O Sculk pode ler',
     leituras: {
-      pack: 'pack e achados',
-      logs: 'logs e crash reports',
-      configs: 'configs',
+      pack: 'Informações do pack e os achados do Warden',
+      logs: 'Logs e crash reports',
+      logsSub: 'Sem dados pessoais.',
+      desempenho: 'Medidas de desempenho dos testes',
+      configs: 'Configs do pack',
+      github: 'Páginas dos mods no GitHub',
+      githubSub: 'Só o nome do mod e palavras do erro.',
+      negado: 'Não permitido nesta conversa.',
     },
-    tudo: 'Tudo o que foi enviado está nos blocos "Enviado à IA", byte a byte.',
+    enviados: 'Tudo o que foi enviado',
+    textoInicial: 'Texto inicial',
+    total: 'Total',
+    avisos: 'Avisos desta conversa',
+    quota_one:
+      'O limite diário do modelo mais forte acabou; {{count}} resposta usou o mais leve ({{modelo}}).',
+    quota_other:
+      'O limite diário do modelo mais forte acabou; {{count}} respostas usaram o mais leve ({{modelo}}).',
+    timeout_one:
+      'O modelo mais forte demorou demais para responder; {{count}} resposta usou o mais leve ({{modelo}}).',
+    timeout_other:
+      'O modelo mais forte demorou demais para responder; {{count}} respostas usaram o mais leve ({{modelo}}).',
+    planoGratuito:
+      'No plano gratuito, o Google pode usar o conteúdo enviado para melhorar os produtos dele.',
     apagar: 'Apagar esta conversa',
   },
   tokens: {
     mil: '~{{valor}} mil tokens',
     unidades: '{{valor}} tokens',
+    milCurto: '~{{valor}} mil',
   },
   pedir: {
-    semCausa: 'Ou converse com a IA sobre este travamento.',
+    semCausa: 'Ou converse com o Sculk sobre este travamento.',
     comCausa: 'Não parece ser isso?',
     texto:
-      'Ela consulta o log, o pack e os testes. Antes de começar, você vê o que ela poderá consultar; nada é enviado sem a sua confirmação.',
-    botao: 'Pedir ajuda à IA',
+      'Ele consulta o log, o pack e os testes. Antes de começar, você vê o que ele poderá consultar; nada é enviado sem a sua confirmação.',
+    botao: 'Perguntar ao Sculk',
   },
   travamentos: {
-    conversar: 'Conversar com a IA',
-    conversarRotulo: 'Conversar com a IA sobre o travamento de {{quando}}',
+    conversar: 'Conversar com o Sculk',
+    conversarRotulo: 'Conversar com o Sculk sobre o travamento de {{quando}}',
   },
   configuracoes: {
-    titulo: 'IA',
+    titulo: 'Sensor Sculk',
     texto:
-      'O Diagnóstico com IA usa um destes provedores, com a sua chave. As conversas novas usam o provedor escolhido; cada conversa continua no provedor em que começou.',
-    provedor: 'Provedor da IA',
+      'O Sensor Sculk usa um destes provedores, com a sua chave. As conversas novas usam o provedor escolhido; cada conversa continua no provedor em que começou.',
+    provedor: 'Provedor do Sculk',
     trocado: 'Conversas novas vão usar {{provedor}}.',
     chaves: 'Chave de cada provedor',
-    modeloTitulo: 'Modelo ({{provedor}})',
-    economical: {
-      titulo: 'Mais econômico (padrão)',
-      desc: 'Para análises simples: o modelo mais barato da família mais nova.',
-    },
-    careful: {
-      titulo: 'Análise mais cuidadosa',
-      desc: 'Para problemas difíceis: o modelo mais capaz da família mais nova, que custa mais por conversa.',
-    },
+    modeloTitulo: 'Modelos ({{provedor}})',
+    modos:
+      'Procurar rápido usa o {{rapido}}; Procurar a fundo usa o {{fundo}}. Você escolhe a cada pergunta, no Sensor Sculk.',
+    modosSemNome:
+      'Você escolhe Procurar rápido ou Procurar a fundo a cada pergunta, no Sensor Sculk.',
     modelo: 'Hoje: {{modelo}}.',
     gemini: {
       titulo: 'Usa sempre o modelo mais forte do plano gratuito',
@@ -389,7 +466,7 @@ export const ia = {
       anthropic:
         'A Anthropic cobra por uso, na sua conta, conforme os preços dela. Não há plano gratuito pela API.',
     },
-    usoChave: 'Usada só no Diagnóstico com IA, e sempre com a sua confirmação antes de cada envio.',
+    usoChave: 'Usada só no Sensor Sculk, e sempre com a sua confirmação antes de cada envio.',
   },
   erros: {
     KEY_INVALID: {
@@ -409,7 +486,7 @@ export const ia = {
     },
     QUOTA_EXCEEDED: {
       gemini:
-        'O limite diário do plano gratuito deste modelo acabou. Troque de modelo em Configurações (cada modelo tem a sua cota) ou tente de novo mais tarde.',
+        'O limite diário do plano gratuito do Gemini acabou, também no modelo mais leve. Tente de novo mais tarde: o limite volta a cada dia.',
       openai:
         'A cota da sua conta da OpenAI acabou ou chegou ao limite de gastos. Confira o "Billing" da OpenAI ou tente de novo mais tarde.',
       anthropic:
@@ -441,11 +518,11 @@ export const ia = {
     },
     NO_MODEL: {
       gemini:
-        'Nenhum modelo do Gemini disponível para a sua chave serve para o diagnóstico. Confira a chave em Configurações.',
+        'Nenhum modelo do Gemini disponível para a sua chave serve para o Sculk. Confira a chave em Configurações.',
       openai:
-        'Nenhum modelo da OpenAI disponível para a sua chave serve para o diagnóstico. Confira a chave em Configurações.',
+        'Nenhum modelo da OpenAI disponível para a sua chave serve para o Sculk. Confira a chave em Configurações.',
       anthropic:
-        'Nenhum modelo do Claude disponível para a sua chave serve para o diagnóstico. Confira a chave em Configurações.',
+        'Nenhum modelo do Claude disponível para a sua chave serve para o Sculk. Confira a chave em Configurações.',
     },
     REJECTED: {
       gemini:
