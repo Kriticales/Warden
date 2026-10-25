@@ -4,8 +4,8 @@
  * Chaves (dados sempre atuais, QUALITY §4): as conversas sem pack ficam no app, fora de qualquer
  * pack (`['app', 'ai', 'sem-pack', …]`). O `ai-standalone-updated` (cada pergunta, consulta,
  * resposta, erro ou espera) e cada mudança feita aqui (começar, perguntar, apagar) invalidam
- * **tudo** sob essa chave: a lista "Conversas sem pack" e a conversa aberta. A escolha do modelo e
- * a chave do provedor vêm das chaves da IA com pack (`aiKeys.settings`, `aiKeys.models`).
+ * **tudo** sob essa chave: a lista de conversas sem pack e a conversa aberta. O provedor, os
+ * modelos e a chave vêm das chaves do Sensor Sculk com pack (`aiKeys.settings`, `aiKeys.models`).
  *
  * Como na conversa com pack, o laço demora: `ai_standalone_run` é chamado sem esperar, e a tela
  * acompanha pelos eventos.
@@ -17,6 +17,7 @@ import {
   events,
   type AiPermissions,
   type AiStandalonePreviewRequest,
+  type SearchMode,
 } from '../../../lib/ipc/bindings';
 import { useTauriEvent } from '../../../lib/ipc/events';
 import { commandQuery, useCommandMutation } from '../../../lib/ipc/query';
@@ -68,14 +69,14 @@ export function runStandaloneInBackground(queryClient: QueryClient, id: string):
   void run
     .then(unwrap)
     .catch((error: unknown) => {
-      log.info('a IA parou com erro (gravado na conversa sem pack)', error);
+      log.info('o Sculk parou com erro (gravado na conversa sem pack)', error);
     })
     .finally(() => {
       void queryClient.invalidateQueries({ queryKey: standaloneKeys.all });
     });
 }
 
-/** "✦ Começar conversa": grava a conversa e começa a rodar. Devolve o id. */
+/** "Enviar e começar": grava a conversa e começa a rodar. Devolve o id. */
 export function useStartStandalone() {
   const queryClient = useQueryClient();
   return useCommandMutation(
@@ -90,15 +91,19 @@ export function useStartStandalone() {
   );
 }
 
-/** Uma pergunta nova na conversa sem pack. */
+/** Uma pergunta nova na conversa sem pack, com o modo dela (`null` no Gemini). */
 export function useSendStandalone(id: string) {
   const queryClient = useQueryClient();
-  return useCommandMutation((text: string) => commands.aiStandaloneSend(id, text), {
-    invalidates: [standaloneKeys.all],
-    onSuccess: () => {
-      runStandaloneInBackground(queryClient, id);
+  return useCommandMutation(
+    ({ text, mode }: { text: string; mode: SearchMode | null }) =>
+      commands.aiStandaloneSend(id, text, mode),
+    {
+      invalidates: [standaloneKeys.all],
+      onSuccess: () => {
+        runStandaloneInBackground(queryClient, id);
+      },
     },
-  });
+  );
 }
 
 /** "Tentar de novo" depois de um erro ou de uma resposta interrompida. */

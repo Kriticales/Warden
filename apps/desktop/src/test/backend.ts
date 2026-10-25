@@ -93,10 +93,9 @@ const DEFAULTS: Record<string, Handler> = {
   }),
   // Importar modpack (P1-19): o pack não foi importado, nada para revisar em Problemas.
   import_review: () => null,
-  // ✦ Diagnóstico com IA (D-04): o modelo padrão em Configurações e os modelos da chave.
+  // Sensor Sculk (D-04; ADR-0064): o provedor das conversas novas e os modelos da chave.
   ai_settings_get: () => ({
     provider: 'gemini',
-    tier: 'economical',
     keyConfigured: false,
     models: null,
     providers: [],

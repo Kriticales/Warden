@@ -177,7 +177,7 @@ export const configuracoes = {
       detailed: 'Detalhado (para relatar um problema)',
     },
     abrirPasta: 'Abrir pasta de registros',
-    dica: 'Os registros do Warden nunca guardam chaves. Antes de qualquer envio à IA, você vê o texto exato.',
+    dica: 'Os registros do Warden nunca guardam chaves. Antes de qualquer envio ao Sculk, você vê o texto exato.',
   },
 } as const;
 

@@ -1,18 +1,19 @@
 /**
- * ✦ Analisar um log, a conversa com a IA sem pack, no app real (D-19; SPEC T14 item 8), com o
+ * ✦ Analisar um log, a conversa com o Sculk sem pack, no app real (D-19; SPEC T14 item 8), com o
  * mclo.gs e o Gemini simulados (`mock-server/paste.ts` e `mock-server/gemini.ts`):
  *
  * - CA-T14-26: Meus packs abre "Analisar um log"; um link de outro site e o do hastebin mostram
  *   as frases de recusa, sem conversa nova;
  * - CA-T14-27 e CA-T14-28: colar um link do mclo.gs baixa só o texto dele; o consentimento mostra
- *   o texto já sem dados pessoais; cancelar não manda nada ao Gemini; o link não vai à IA; o
+ *   o texto já sem dados pessoais; cancelar não manda nada ao Gemini; o link não vai ao Sculk; o
  *   link do pastebin baixa só o texto puro dele (`pastebin.com/raw/<id>`);
- * - CA-T14-30: depois de **✦ Começar conversa**, a resposta do Gemini simulado aparece; a conversa
- *   fica em `ai/_sem-pack/` nos dados do Warden, aparece em "Conversas sem pack" e reabre igual
- *   depois de reiniciar o app;
+ * - CA-T14-30: depois de **✦ Enviar e começar**, a resposta do Gemini simulado aparece; a
+ *   conversa fica em `ai/_sem-pack/` nos dados do Warden, aparece na coluna de conversas da página
+ *   e reabre igual depois de reiniciar o app;
  * - junção do lote 12 (D-16/D-17 × D-19): a mesma análise por link com a OpenAI e com o Claude
- *   simulados (`mock-server/openai.ts`, `anthropic.ts`): o consentimento diz o provedor e o
- *   modelo, a resposta cita a linha do log, e o pedido vai só ao provedor ativo, sem recusa.
+ *   simulados (`mock-server/openai.ts`, `anthropic.ts`), em "Procurar rápido": o consentimento
+ *   diz o provedor e o modelo, a resposta cita a linha do log, e o pedido vai só ao provedor
+ *   ativo, sem recusa.
  *
  * Com `WARDEN_E2E_SCREENSHOTS=<pasta>`, grava as capturas das telas.
  */
@@ -124,21 +125,36 @@ async function waitAlert(text: string): Promise<void> {
 }
 
 function beginButton() {
-  return $('main').$('button=Começar conversa');
+  return $('form.newconv').$('button*=Começar conversa');
+}
+
+/** "O que está acontecendo?" (sem ele, Começar conversa não anda). */
+async function chooseSymptom(): Promise<void> {
+  await clickStable($('form.newconv').$('button[role="radio"]*=Trava ao abrir o jogo'));
 }
 
 async function openConsent(): Promise<ReturnType<typeof $>> {
   await clickStable(beginButton());
   const dialog = $('[role="dialog"]');
-  await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+  await dialog.$('h2*=Começar uma conversa com o Sculk?').waitForDisplayed({ timeout: 30_000 });
   return dialog;
 }
 
-function standaloneRows() {
-  return $('section[aria-labelledby="ia-sem-pack-conversas"]').$$('tbody tr');
+/** O título da conversa aberta (a coluna do meio). */
+async function waitTitle(text: string, timeout = 60_000): Promise<void> {
+  await $('section.sculk__chat').$(`h2*=${text}`).waitForDisplayed({ timeout });
 }
 
-describe('✦ Analisar um log sem pack (D-19)', function () {
+/** Espera a resposta do Sculk (o rodapé "O Sculk pode errar…"). */
+async function waitAnswer(): Promise<void> {
+  await $('.ai__foot*=O Sculk pode errar').waitForDisplayed({ timeout: 60_000 });
+}
+
+function standaloneRows() {
+  return $('aside.sculk__convs').$$('a.conv');
+}
+
+describe('Analisar um log sem pack (D-19)', function () {
   before(async function () {
     mkdirSync(join(DATA_ROOT, 'config'), { recursive: true });
     mkdirSync(join(DATA_ROOT, 'cofre-de-teste'), { recursive: true });
@@ -168,8 +184,9 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     await $('h2=Você ainda não tem packs').waitForDisplayed({ timeout: 30_000 });
     await clickStable($('main').$('a*=Analisar um log'));
     await waitHeading('Analisar um log');
-    await $('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
+    await $('section.sculk__chat').$('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
     await $('p=Nenhuma conversa sem pack ainda.').waitForDisplayed({ timeout: 30_000 });
+    await chooseSymptom();
 
     await fetch(`${MOCK_URL}/__reset`);
     await pasteLink('https://example.com/abc123');
@@ -237,9 +254,9 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
   it('CA-T14-30: a resposta do Gemini chega; a conversa fica guardada e reabre depois de reiniciar', async () => {
     const dialog = await openConsent();
     const shown = await fullText(dialog.$('pre[aria-label="Texto inicial que será enviado"]'));
-    await clickStable(dialog.$('button=Começar conversa'));
-    await waitHeading(TITLE);
-    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
+    await clickStable(dialog.$('button*=Enviar e começar'));
+    await waitTitle(TITLE);
+    await waitAnswer();
 
     const state = await gemini();
     expect(state.refusals).toEqual([]);
@@ -252,7 +269,8 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
     expect(everything).not.toContain('Maria');
     expect(everything).not.toContain('192.168.0.42');
     expect(everything).not.toContain(MCLOGS_E2E_ID);
-    await expect($('details.toolcall*=no log do link')).toBeDisplayed();
+    await clickStable($('details.consults').$('summary'));
+    await expect($('details.consults').$('details.tc*=no log do link')).toBeDisplayed();
     await expect($(`li.claim*=${TITLE}`).$('button.evid')).toHaveText(
       expect.stringContaining('log, linha 3'),
     );
@@ -279,10 +297,10 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
       timeout: 30_000,
       timeoutMsg: 'a conversa não apareceu em Conversas sem pack',
     });
-    await expect($('td*=Link do mclo.gs')).toBeDisplayed();
-    await clickStable($('section[aria-labelledby="ia-sem-pack-conversas"]').$('a=Continuar'));
-    await waitHeading(TITLE);
-    await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 30_000 });
+    await expect($('aside.sculk__convs').$('a.conv*=Link do mclo.gs')).toBeDisplayed();
+    await clickStable($('aside.sculk__convs').$('a.conv'));
+    await waitTitle(TITLE);
+    await waitAnswer();
     expect((await gemini()).generate.length).toBe(2);
     await screenshot('d19-04-reaberta');
   });
@@ -296,7 +314,7 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
       // A barra de cima tem Configurações em qualquer tela (aqui, a conversa do caso anterior).
       await clickStable($('header.topbar').$('a*=Configurações'));
       await waitHeading('Configurações');
-      const choice = $('fieldset*=Provedor da IA').$(`label.choice*=${radio}`);
+      const choice = $('fieldset*=Provedor do Sculk').$(`label.choice*=${radio}`);
       const input = choice.$('input[type="radio"]');
       await clickStable(input.parentElement().parentElement());
       await browser.waitUntil(async () => input.isSelected(), {
@@ -313,17 +331,21 @@ describe('✦ Analisar um log sem pack (D-19)', function () {
       await waitHeading('Meus packs');
       await clickStable($('main').$('a*=Analisar um log'));
       await waitHeading('Analisar um log');
-      await $('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
+      await clickStable($('aside.sculk__convs').$('button*=Nova conversa'));
+      await $('section.sculk__chat').$('h2=Nova análise').waitForDisplayed({ timeout: 30_000 });
+      await chooseSymptom();
+      // "Procurar rápido": o modelo mais econômico da regra (o que o simulado espera).
+      await clickStable($('form.newconv').$('button[role="radio"]=Procurar rápido'));
       await pasteLink(LINK);
       const dialog = await openConsent();
       await expect(dialog).toHaveText(
         expect.stringContaining(`${radio} (${model}), com a sua chave`),
       );
       await expect(dialog).not.toHaveText(expect.stringContaining('plano gratuito'));
-      await clickStable(dialog.$('button=Começar conversa'));
-      await waitHeading(TITLE);
-      await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
-      await expect($(`p*=com ${radio}`)).toBeDisplayed();
+      await clickStable(dialog.$('button*=Enviar e começar'));
+      await waitTitle(TITLE);
+      await waitAnswer();
+      await expect($(`span.sculk__meta*=${radio} ·`)).toBeDisplayed();
       await expect($(`li.claim*=${TITLE}`).$('button.evid')).toHaveText(
         expect.stringContaining('log, linha 3'),
       );

@@ -38,7 +38,7 @@ export const editor = {
     mods: { nome: 'Mods', desc: 'Mods, resource packs e shaders' },
     configs: { nome: 'Configs', desc: 'Arquivos de ajuste e scripts do pack' },
     problemas: { nome: 'Problemas', desc: 'Saúde do pack, problemas e travamentos' },
-    ia: { nome: 'Diagnóstico com IA', desc: 'Conversar com a IA sobre um problema do pack' },
+    ia: { nome: 'Sensor Sculk', desc: 'Conversar com o Sculk sobre um problema do pack' },
     historico: { nome: 'Histórico', desc: 'Versões salvas e publicação' },
     exportar: { nome: 'Exportar', desc: 'Gerar o pack para quem vai jogar' },
     contagemItens_one: '{{count}} item',

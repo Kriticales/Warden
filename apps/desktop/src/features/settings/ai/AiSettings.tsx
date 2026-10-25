@@ -6,14 +6,12 @@
  *   Claude. As conversas já começadas continuam no provedor delas.
  * - **Chave de cada provedor**, na mesma linha das outras chaves (`KeyRow`: Testar, Substituir,
  *   Remover e o passo a passo com a página oficial).
- * - **Modelo do provedor ativo:** na OpenAI e no Claude, "Mais econômico" (padrão) ou "Análise
- *   mais cuidadosa", com o nome do modelo vindo da lista de modelos da chave (nenhum nome no
- *   código) e uma frase curta sobre a cobrança por uso; no Gemini, uma linha só: "Usa sempre o
- *   modelo mais forte do plano gratuito", com o modelo em uso e a troca automática para um mais
- *   leve quando o limite diário acaba (feita e avisada pelo backend).
- *
- * Cada provedor guarda a sua escolha no backend (`ai/settings.json`), então trocar de provedor e
- * voltar mostra a escolha de antes.
+ * - **Modelos do provedor ativo** (só informativo): na OpenAI e no Claude, o modelo de "Procurar
+ *   rápido" e o de "Procurar a fundo", vindos da lista de modelos da chave (nenhum nome no
+ *   código), com a frase de que a escolha é feita a cada pergunta no Sensor Sculk (ADR-0064) e
+ *   uma frase curta sobre a cobrança por uso; no Gemini, uma linha só: "Usa sempre o modelo mais
+ *   forte do plano gratuito", com o modelo em uso e a troca automática para um mais leve quando o
+ *   limite diário acaba (feita e avisada pelo backend).
  */
 import { Sparkles } from 'lucide-react';
 import { useId } from 'react';
@@ -22,14 +20,9 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from '../../../components/ui/alert';
 import { Icon } from '../../../components/ui/icon';
 import { showToast } from '../../../components/ui/toast';
-import type { AiProvider, ModelTier } from '../../../lib/ipc/bindings';
+import type { AiProvider } from '../../../lib/ipc/bindings';
 import { toAppError } from '../../../lib/ipc/errors';
-import {
-  useAiModels,
-  useAiSettings,
-  useSetAiProvider,
-  useSetAiTier,
-} from '../../diagnostics/ai/api';
+import { useAiModels, useAiSettings, useSetAiProvider } from '../../diagnostics/ai/api';
 import { useSecretsStatus } from '../api';
 import { Choice } from '../components/fields';
 import { KeyRow } from '../components/KeysSection';
@@ -43,10 +36,8 @@ import {
 } from './providers';
 import './ai-settings.css';
 
-const TIERS: readonly ModelTier[] = ['economical', 'careful'];
-/** Nomes dos grupos de rádio. */
+/** Nome do grupo de rádio. */
 const PROVIDER_GROUP = 'ia-provedor';
-const TIER_GROUP = 'ia-modelo';
 
 export function AiSettings() {
   const { t } = useTranslation('ia');
@@ -115,26 +106,16 @@ export function AiSettings() {
           key={active}
           provider={active}
           keyConfigured={secrets.data?.[secretOf(active)] ?? false}
-          tier={settings.data?.tier ?? 'economical'}
         />
       ) : null}
     </section>
   );
 }
 
-/** O modelo do provedor ativo. */
-function ModelSetting({
-  provider,
-  keyConfigured,
-  tier,
-}: {
-  provider: AiProvider;
-  keyConfigured: boolean;
-  tier: ModelTier;
-}) {
+/** Os modelos do provedor ativo (só informativo; o modo é escolhido a cada pergunta). */
+function ModelSetting({ provider, keyConfigured }: { provider: AiProvider; keyConfigured: boolean }) {
   const { t } = useTranslation('ia');
   const models = useAiModels(provider, keyConfigured);
-  const setTier = useSetAiTier();
   const footer = (
     <>
       {!keyConfigured ? (
@@ -145,16 +126,11 @@ function ModelSetting({
           {aiErrorMessage(toAppError(models.error), provider)}
         </Alert>
       ) : null}
-      {setTier.isError ? (
-        <Alert kind="danger" compact>
-          {aiErrorMessage(toAppError(setTier.error), provider)}
-        </Alert>
-      ) : null}
     </>
   );
 
   if (provider === 'gemini') {
-    const model = modelFor(models.data, tier);
+    const model = modelFor(models.data, 'deep');
     // O mais leve da troca na cota diária (sem ele, ou igual ao modelo, não há troca).
     const lighter = model && usesStrongest(models.data, model) ? models.data?.lighter : null;
     return (
@@ -178,36 +154,20 @@ function ModelSetting({
     );
   }
 
+  const quick = models.data?.economical;
+  const deep = models.data?.careful;
   return (
-    <fieldset className="ai-settings__group">
-      <legend className="field__label">
+    <div className="ai-settings__group" data-testid="ia-modelos">
+      <div className="field__label">
         {t('configuracoes.modeloTitulo', { provedor: providerName(provider) })}
-      </legend>
-      <div className="choice-list choice-list--2">
-        {TIERS.map((value) => {
-          const model = value === 'careful' ? models.data?.careful : models.data?.economical;
-          return (
-            <Choice
-              key={value}
-              name={TIER_GROUP}
-              title={t(`configuracoes.${value}.titulo`)}
-              desc={
-                <>
-                  {t(`configuracoes.${value}.desc`)}
-                  {model ? ` ${t('configuracoes.modelo', { modelo: model })}` : ''}
-                </>
-              }
-              checked={tier === value}
-              disabled={setTier.isPending}
-              onSelect={() => {
-                setTier.mutate(value);
-              }}
-            />
-          );
-        })}
       </div>
+      <p className="t-sm t-2">
+        {quick && deep
+          ? t('configuracoes.modos', { rapido: quick, fundo: deep })
+          : t('configuracoes.modosSemNome')}
+      </p>
       <p className="t-sm t-2">{t(`configuracoes.custo.${provider}`)}</p>
       {footer}
-    </fieldset>
+    </div>
   );
 }

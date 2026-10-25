@@ -1,6 +1,6 @@
 /**
- * Os cartões de proposta de uma resposta da IA (SPEC T14 ✦ passo 3; protótipo `ia-conversa`,
- * `W.proposal`; CA-T14-12): cada mudança que a IA propôs pelas ferramentas `propose_*` (já
+ * Os cartões de proposta de uma resposta do Sculk (SPEC T14 passo 3; protótipo
+ * `design/bug-01/sensor-sculk.html`; CA-T14-12): cada mudança que o Sculk propôs pelas ferramentas `propose_*` (já
  * conferida pelo Warden: proposta sem evidência nem chega aqui), com o título exato, o motivo, a
  * evidência ("Com base em") e **Aplicar** e **Descartar**. Nada muda no pack sem Aplicar.
  *
@@ -9,7 +9,7 @@
  *   fluxo começa.
  * - Aplicada: a etiqueta diz quando e se houve ponto de segurança, com **Testar agora** e
  *   **Desfazer** (volta ao ponto de segurança, com confirmação). Descartada: nada foi gravado.
- * - Enquanto a IA responde nesta conversa, os botões esperam (a decisão grava na conversa).
+ * - Enquanto o Sculk responde nesta conversa, os botões esperam (a decisão grava na conversa).
  */
 import { Check, Play, Target, Undo2, Wrench } from 'lucide-react';
 import { useState } from 'react';
@@ -40,7 +40,7 @@ export interface ProposalCardsProps {
   conversationId: string;
   /** As propostas desta resposta. */
   proposals: readonly Proposal[];
-  /** A IA está respondendo nesta conversa. */
+  /** O Sculk está respondendo nesta conversa. */
   busy: boolean;
   /** O que a conversa analisa (o travamento de origem da busca do culpado). */
   origin: ConversationOrigin;
@@ -61,7 +61,7 @@ export function ProposalCards({
   }
   return (
     <div className="stack-2" data-testid="propostas">
-      <div className="ai-block__label">{t('cartoes.titulo')}</div>
+      <div className="props__title">{t('cartoes.titulo', { count: proposals.length })}</div>
       {proposals.map((proposal) => (
         <ProposalCard
           key={proposal.id}

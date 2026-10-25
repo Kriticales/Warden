@@ -1,9 +1,9 @@
 /**
- * ✦ Propostas da IA e consultas externas no app real (D-14; SPEC T14 ✦ passos 2 e 3), com o
+ * Propostas do Sculk e consultas externas no app real (D-14; SPEC T14 passos 2 e 3), com o
  * Gemini simulado no roteiro das propostas (`PROPOSALS_MARKER`) e o GitHub simulado:
  *
- * - CA-T14-03 e CA-T14-13: com a caixa do GitHub marcada, o bloco "Enviado ao GitHub" é byte a
- *   byte o pedido que o GitHub recebeu, só com `repo:<dono>/<repo>` e as palavras do erro;
+ * - CA-T14-03 e CA-T14-13: com a caixa do GitHub marcada, o "Enviado ao GitHub" dentro da
+ *   consulta do Sculk é byte a byte o pedido que o GitHub recebeu, só com `repo:<dono>/<repo>` e as palavras do erro;
  * - CA-T14-11: a proposta com evidência inventada não aparece;
  * - CA-T14-12: as propostas não mudam nada até **Aplicar** (hash da pasta); **Descartar** não grava
  *   nada; Aplicar mostra a diferença, grava só aquela linha e cria o ponto de segurança;
@@ -164,27 +164,39 @@ async function fullText(element: ReturnType<typeof $>): Promise<string> {
 
 /** Nova conversa sobre "só o pack", com o marcador do roteiro; `github`: a caixa do GitHub. */
 async function startConversation(github: boolean): Promise<void> {
-  const select = $('select.select');
+  const form = $('form.newconv');
+  await form.waitForDisplayed({ timeout: 30_000 });
+  const select = form.$('select.select');
   await select.waitForEnabled({ timeout: 30_000 });
   await select.selectByAttribute('value', 'pack');
-  const note = $('textarea');
+  await clickStable(form.$('button[role="radio"]*=Trava ao entrar no mundo'));
+  const note = form.$('textarea');
   await note.waitForEnabled({ timeout: 30_000 });
   await note.setValue(`${PROPOSALS_MARKER} trava ao entrar no mundo`);
-  await clickStable($('main').$('button=Começar conversa'));
+  await clickStable(form.$('button*=Começar conversa'));
   const dialog = $('[role="dialog"]');
-  await dialog.$('h2=Começar uma conversa com a IA?').waitForDisplayed({ timeout: 30_000 });
+  await dialog.$('h2*=Começar uma conversa com o Sculk?').waitForDisplayed({ timeout: 30_000 });
   const githubLabel = dialog.$('label*=no GitHub');
   await githubLabel.waitForDisplayed({ timeout: 10_000 });
   if (!github) await clickStable(githubLabel);
-  await clickStable(dialog.$('button=Começar conversa'));
-  await $('div*=O que a IA afirma').waitForDisplayed({ timeout: 60_000 });
+  await clickStable(dialog.$('button*=Enviar e começar'));
+  await $('.ai__foot*=O Sculk pode errar').waitForDisplayed({ timeout: 60_000 });
+}
+
+/** Abre o bloco "O Sculk consultou N coisas" e a consulta com o texto dado. */
+async function openConsult(text: string): Promise<ReturnType<typeof $>> {
+  const group = $('details.consults');
+  if (!(await group.getAttribute('open'))) await clickStable(group.$('summary'));
+  const item = group.$(`details.tc*=${text}`);
+  if (!(await item.getAttribute('open'))) await clickStable(item.$('summary'));
+  return item;
 }
 
 function card(title: string) {
   return $(`section.proposal[aria-labelledby]*=${title}`);
 }
 
-describe('✦ Propostas da IA (D-14)', function () {
+describe('Propostas do Sculk (D-14)', function () {
   before(async function () {
     rmSync(PACK, { recursive: true, force: true });
     writePack();
@@ -219,17 +231,16 @@ describe('✦ Propostas da IA (D-14)', function () {
     if (await notNow.isExisting()) await notNow.click();
     else await open.click();
     await waitHeading('Mods');
-    await clickStable($('nav[aria-label="Seções do pack"]').$('a*=Diagnóstico com IA'));
-    await waitHeading('Diagnóstico com IA');
-    await $('h2=Nova conversa').waitForDisplayed({ timeout: 30_000 });
+    await clickStable($('nav[aria-label="Seções do pack"]').$('a*=Sensor Sculk'));
+    await $('form.newconv').waitForDisplayed({ timeout: 30_000 });
     await fetch(`${MOCK_URL}/__reset`);
     await startConversation(true);
 
+    await openConsult('busca de issues');
     const block = $('[data-testid="enviado-github"]');
     await expect(block).toHaveText(
       expect.stringContaining('Enviado ao GitHub: busca de issues em CaffeineMC/sodium'),
     );
-    await clickStable(block.$('summary'));
     const sent = await fullText(block.$('pre[aria-label="Pedido enviado ao GitHub"]'));
     const searches = (await requests()).filter((line) =>
       line.includes('/github/api/search/issues'),
@@ -282,11 +293,10 @@ describe('✦ Propostas da IA (D-14)', function () {
   });
 
   it('CA-T14-13: com a caixa do GitHub desmarcada, nada vai ao GitHub', async () => {
-    await clickStable($('a*=Conversas'));
-    await waitHeading('Diagnóstico com IA');
+    await clickStable($('aside.sculk__convs').$('button*=Nova conversa'));
     await fetch(`${MOCK_URL}/__reset`);
     await startConversation(false);
-    await expect($('details.toolcall*=não permitido nesta conversa')).toBeDisplayed();
+    await expect(await openConsult('não permitido nesta conversa')).toBeDisplayed();
     expect((await requests()).some((line) => line.includes('/github/'))).toBe(false);
     await expect($('[data-testid="enviado-github"]')).not.toBeExisting();
   });
