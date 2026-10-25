@@ -67,7 +67,18 @@ const LAST_CRASH: SourceChoice = 'ultimo';
 const LOCAL_FILE: SourceChoice = 'arquivo';
 const PACK_ONLY: SourceChoice = 'pack';
 
-export function AiPage({ packId, sessionId }: { packId: PackId; sessionId: string | null }) {
+export function AiPage({
+  packId,
+  sessionId,
+  subject = null,
+  symptom = null,
+}: {
+  packId: PackId;
+  sessionId: string | null;
+  /** O assunto vindo de "✦ Perguntar ao Sculk" em Problemas (vai para "Contar algo"). */
+  subject?: string | null;
+  symptom?: AiSymptom | null;
+}) {
   const { t } = useTranslation('ia');
   const secrets = useSecretsStatus();
   const settings = useAiSettings();
@@ -125,7 +136,13 @@ export function AiPage({ packId, sessionId }: { packId: PackId; sessionId: strin
   return (
     <div className="stack ai-page">
       {head}
-      <NewConversation packId={packId} sessionId={sessionId} provider={provider} />
+      <NewConversation
+        packId={packId}
+        sessionId={sessionId}
+        subject={subject}
+        initialSymptom={symptom}
+        provider={provider}
+      />
       <ModelLine provider={provider} tier={settings.data.tier} />
       <Conversations packId={packId} />
     </div>
@@ -135,10 +152,14 @@ export function AiPage({ packId, sessionId }: { packId: PackId; sessionId: strin
 function NewConversation({
   packId,
   sessionId,
+  subject,
+  initialSymptom,
   provider,
 }: {
   packId: PackId;
   sessionId: string | null;
+  subject: string | null;
+  initialSymptom: AiSymptom | null;
   provider: AiProvider;
 }) {
   const { t } = useTranslation('ia');
@@ -148,21 +169,24 @@ function NewConversation({
   const chooseLog = useChooseLog(packId);
   const selectId = useId();
   const noteId = useId();
-  const [symptom, setSymptom] = useState<AiSymptom>('crashInWorld');
+  const [symptom, setSymptom] = useState<AiSymptom>(initialSymptom ?? 'crashInWorld');
   const [choice, setChoice] = useState<SourceChoice | null>(null);
   const [pick, setPick] = useState<AiLocalPick | null>(null);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(subject ?? '');
   const [consent, setConsent] = useState<AiPreview | null>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const autoOpened = useRef(false);
 
   const data = sources.data;
   const lastCrash = data?.lastCrash ?? null;
+  // Com um assunto e sem sessão (um achado de Problemas), a conversa é sobre o pack.
   const defaultChoice: SourceChoice = sessionId
     ? `sessao:${sessionId}`
-    : lastCrash
-      ? 'ultimo'
-      : 'pack';
+    : subject
+      ? 'pack'
+      : lastCrash
+        ? 'ultimo'
+        : 'pack';
   const current = choice ?? defaultChoice;
 
   const sourceOf = (value: SourceChoice): AiSource | null => {
@@ -187,9 +211,9 @@ function NewConversation({
 
   // Vindo de "✦ Pedir ajuda à IA" ou "✦ Conversar com a IA": o consentimento abre sozinho.
   useEffect(() => {
-    if (sessionId && data && !autoOpened.current) {
+    if ((sessionId || subject) && data && !autoOpened.current) {
       autoOpened.current = true;
-      begin(`sessao:${sessionId}`);
+      begin(sessionId ? `sessao:${sessionId}` : 'pack');
     }
   });
 
