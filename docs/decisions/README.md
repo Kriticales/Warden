@@ -28,7 +28,7 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0022](0022-testes-e-ci.md) | Estratégia de testes e CI | técnica |
 | [0023](0023-registros-e-privacidade.md) | Registros e privacidade | técnica |
 | [0024](0024-bibliotecas-rust.md) | Bibliotecas Rust principais (cofre: ver 0052; JSON: ver 0054) | técnica |
-| [0025](0025-segredos-cofre-ou-env.md) | Segredos: cofre do sistema por padrão, arquivo .env opcional | dono |
+| [0025](0025-segredos-cofre-ou-env.md) | Segredos: cofre do sistema por padrão, arquivo .env opcional (substituída pela 0069) | dono |
 | [0026](0026-estrutura-de-navegacao.md) | Estrutura de navegação do app (funções avançadas: ver 0036) | dono |
 | [0027](0027-busca-combinada.md) | Busca de mods combinada (Modrinth + CurseForge) | dono |
 | [0028](0028-publicacao-no-github.md) | Publicar versões no GitHub para distribuir o pack | dono |
@@ -67,5 +67,7 @@ Formato e regras em [ADR-0001](0001-registro-de-decisoes.md). "Decisão do dono"
 | [0061](0061-loader-estrito-ao-adicionar-atualizar-e-trocar-versao.md) | Loader estrito ao adicionar, atualizar e trocar versão: o mod tem de ser para o Minecraft e o loader do pack; Forge só no NeoForge 1.20.1 (complementa a 0006) | dono |
 | [0062](0062-emenda-do-portablemc-java-sem-janela.md) | Emenda do portablemc: Java sem janela no Windows (complementa a 0057 e a 0049) | técnica |
 | [0063](0063-o-warden-se-comporta-como-app.md) | O Warden se comporta como app, não como página: atalhos de navegador, menu de contexto, seleção e arrastar | técnica |
+| [0069](0069-chaves-so-no-cofre-do-sistema.md) | Chaves só no cofre do sistema; sai o modo `.env`, com a migração das chaves ao abrir o app (substitui a 0025) | dono |
+| [0070](0070-ordem-de-preferencia-dos-provedores.md) | Ordem de preferência dos provedores do Sculk (o 1º com chave funcionando abre as conversas novas) e Configurações com menu lateral (complementa a 0060) | dono |
 
 As decisões do dono estão em [SPEC §10](../SPEC.md#10-decisões-do-dono). A escolha do motor do launcher (spike S1) está na ADR-0057.
